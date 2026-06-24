@@ -10,14 +10,15 @@ The interface will be a modern Pokédex device dashboard: deep charcoal surfaces
 - Responsive app shell with desktop navigation, mobile drawer, theme toggle, skip link, and visible keyboard focus.
 - Reusable components: AppShell, PageHeader, PokemonCard, TypeBadge, StatBar, PokeballLoader, SkeletonCard, ErrorBanner, EmptyState, SearchAutocomplete, FilterPanel, MapPanel, BattleArena, HealthBar, MoveButton, TeamSlot, AnalyticsCard, and ChartCard.
 
-### Phase 4–7 delivery
+### Phase 4–8 delivery
 
 - Completed: Vite migration, responsive AppShell, navigation drawer, dark/light theme toggle, skip link, page transitions, and the core shared state components.
 - Completed: landing page, canonical Pokédex browse page, filters, grid/list/compact views, pagination, and Pokémon detail records.
 - Completed: browser-local favorites, recently viewed history, saved catalog preferences, profile metrics, most-used battle Pokémon, and an explicit clear-local-data flow.
 - Completed: Pokémon comparison, canonical type-effectiveness explorer, six-slot team builder, local team saves, coverage analysis, rule-based candidates, and battle handoff.
 - Completed: classic-inspired battle arena, health bars, move controls, switching, difficulty-aware CPU, status effects, battle dialogue, and local battle history.
-- Deferred to their dedicated roadmap phases: map controls and analytics charts. Their routes remain visible as clearly labelled placeholders rather than pretending that features exist.
+- Completed: general/Pokémon-specific sightings explorer, clusters, heatmap, time/radius filters, current-location control, hotspot summary, sidebar navigation, and map-key fallback.
+- Deferred to the dedicated roadmap phase: analytics charts. Their route remains visible as a clearly labelled placeholder rather than pretending that feature exists.
 
 ## Pages
 

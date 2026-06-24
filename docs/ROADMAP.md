@@ -12,7 +12,7 @@
 | 5 | Local profile, favorites, recent views — complete | MVP | Medium | 4 |
 | 6 | Compare, type chart, team builder — complete | Portfolio | High | 2, 4, 5 |
 | 7 | Classic-inspired battle redesign — complete | Portfolio | High | 2, 3, 4 |
-| 8 | Sightings-map redesign | Portfolio | High | 3, 4 |
+| 8 | Sightings-map redesign — complete | Portfolio | High | 3, 4 |
 | 9 | Analytics dashboard | Portfolio | Medium | 2, 3, 4 |
 | 10 | Quiz, achievements, exports | Polish | Medium | 5–7 |
 | 11 | Tests, CI, and quality gates | MVP | High | 1–4 |
@@ -35,6 +35,6 @@ The MVP is a secure local stack, repeatable all-Pokémon seed pipeline, validate
 
 ## Next milestone
 
-Phase 7 is complete: the classic-inspired battle simulator includes move selection, type effectiveness, accuracy, critical hits, status effects, switching, four CPU difficulties, and browser-local battle history.
+Phase 8 is complete: the sightings explorer has a general map, Pokémon-specific route, clusters, heatmap mode, date/radius filters, location controls, hotspot summary, sidebar focus, and graceful map-key fallback.
 
-The next milestone is Phase 8: sightings-map redesign.
+The next milestone is Phase 9: analytics dashboard.

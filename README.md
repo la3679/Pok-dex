@@ -11,6 +11,7 @@ A full-stack Pokémon exploration project built with React, Vite, Flask, and Mon
 - Pokémon detail records with core stats, types, move metadata, evolution data, and sightings links.
 - Local-first favorites, recently viewed records, catalog preferences, and a privacy-preserving profile dashboard.
 - Pokémon comparison, canonical type-effectiveness explorer, and a locally saved team builder with coverage analysis.
+- General and Pokémon-specific sightings explorer with date/radius filters, clusters, heatmap mode, hotspot summaries, and location-aware search.
 - Pokémon-specific sighting map with radius filtering.
 - Comments on Pokémon records.
 - GridFS image serving for the legacy dataset.
@@ -103,6 +104,7 @@ For a faster development-only smoke import, pass `--max-records 10`; the normal 
 | GET | `/api/pokemon/:pokemonId/moves` | Battle move metadata |
 | GET | `/api/pokemon/:pokemonId/evolutions` | Evolution-chain data |
 | GET | `/api/pokemon/:pokemonId/sightings` | Pokémon sightings, optionally by radius |
+| GET | `/api/sightings` | Enriched general sightings with date, Pokémon, and radius filters |
 | POST | `/api/pokemon/:pokemonId/comments` | Add a comment |
 | GET | `/api/types` | Canonical type metadata |
 | GET | `/api/type-chart` | Attacking/defending type multiplier |
