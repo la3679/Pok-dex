@@ -10,6 +10,7 @@ A full-stack Pokémon exploration project built with React, Vite, Flask, and Mon
 - Searchable, filterable, paginated canonical Pokédex with grid/list/compact views.
 - Pokémon detail records with core stats, types, move metadata, evolution data, and sightings links.
 - Local-first favorites, recently viewed records, catalog preferences, and a privacy-preserving profile dashboard.
+- Pokémon comparison, canonical type-effectiveness explorer, and a locally saved team builder with coverage analysis.
 - Pokémon-specific sighting map with radius filtering.
 - Comments on Pokémon records.
 - GridFS image serving for the legacy dataset.
