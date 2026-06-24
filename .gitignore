@@ -7,6 +7,21 @@ node_modules/
 
 # Ignore virtual environment directory
 venv/
+.venv/
 
 # Ignore the vscode directory
 .vscode/
+
+# Local datasets and environment-specific credentials
+data/
+.env
+.env.local
+*.env
+*.env.local
+!.env.example
+!*.env.example
+backend/.env
+backend/.env.local
+frontend/.env
+frontend/.env.local
+frontend/build/

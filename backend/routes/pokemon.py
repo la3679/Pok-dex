@@ -1,18 +1,13 @@
 from flask import Blueprint, jsonify, request
-from pymongo import MongoClient
-from config import Config
 from datetime import datetime
 import logging
+from database import get_database
+from routes.errors import api_error
 
 pokemon_bp = Blueprint('pokemon', __name__)
 
-# MongoDB connection with authentication
-client = MongoClient(Config.MONGO_URI)
-db = client['PokeMap']
+db = get_database()
 merged_collection = db['MergedPokemonSightings']
-
-# Ensure geospatial index on sightings.location
-merged_collection.create_index([("sightings.location", "2dsphere")])
 
 @pokemon_bp.route('/pokemon', methods=['GET'])
 def get_all_pokemon():
@@ -127,9 +122,9 @@ def get_all_pokemon():
             'currentPage': page
         }), 200
 
-    except Exception as e:
-        logging.error(f"Error in get_all_pokemon: {str(e)}")
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    except Exception:
+        logging.exception('Unable to list Pokémon.')
+        return api_error('Unable to load Pokémon right now.', 500, 'pokemon_list_failed')
 
 @pokemon_bp.route('/pokemon/<pokemonId>', methods=['GET'])
 def get_pokemon_by_id(pokemonId):
@@ -138,7 +133,7 @@ def get_pokemon_by_id(pokemonId):
         pokemon = merged_collection.find_one({"pokemon.pokemonId": pokemonId})
         if not pokemon:
             logging.debug(f"No Pokémon found for ID: {pokemonId}")
-            return jsonify({"error": f"No Pokémon found with ID {pokemonId}. Check if the ID exists in the database."}), 404
+            return api_error('Pokémon not found.', 404, 'pokemon_not_found')
 
         # Convert ObjectId to string for JSON serialization
         pokemon['_id'] = str(pokemon['_id'])
@@ -153,9 +148,9 @@ def get_pokemon_by_id(pokemonId):
                 comment['date'] = comment['date'].isoformat()
 
         return jsonify(pokemon), 200
-    except Exception as e:
-        logging.error(f"Error in get_pokemon_by_id for ID {pokemonId}: {str(e)}")
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    except Exception:
+        logging.exception('Unable to load Pokémon details.')
+        return api_error('Unable to load Pokémon details right now.', 500, 'pokemon_detail_failed')
 
 @pokemon_bp.route('/pokemon/<pokemonId>/sightings', methods=['GET'])
 def get_sightings_by_area(pokemonId):
@@ -168,7 +163,7 @@ def get_sightings_by_area(pokemonId):
         pokemon = merged_collection.find_one({"pokemon.pokemonId": pokemonId})
         if not pokemon:
             logging.debug(f"No Pokémon found for sightings with ID: {pokemonId}")
-            return jsonify({"error": f"Pokémon with ID {pokemonId} not found"}), 404
+            return api_error('Pokémon not found.', 404, 'pokemon_not_found')
 
         sightings = pokemon.get('sightings', [])
         filtered_sightings = sightings
@@ -205,9 +200,9 @@ def get_sightings_by_area(pokemonId):
                 sighting['date'] = sighting['date'].isoformat()
 
         return jsonify(filtered_sightings), 200
-    except Exception as e:
-        logging.error(f"Error in get_sightings_by_area for ID {pokemonId}: {str(e)}")
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    except Exception:
+        logging.exception('Unable to load sightings.')
+        return api_error('Unable to load sightings right now.', 500, 'sightings_failed')
 
 @pokemon_bp.route('/pokemon/<pokemonId>/comments', methods=['POST'])
 def add_comment(pokemonId):
@@ -215,8 +210,8 @@ def add_comment(pokemonId):
         # Keep pokemonId as a string, no conversion
         data = request.get_json()
         if not data or 'text' not in data or not data['text'].strip():
-            logging.debug(f"Invalid comment data for Pokémon ID {pokemonId}: {data}")
-            return jsonify({"error": "Comment text is required"}), 400
+            logging.debug('Invalid comment payload for Pokémon ID %s.', pokemonId)
+            return api_error('Comment text is required.', 400, 'comment_text_required')
 
         new_comment = {
             "text": data['text'],
@@ -231,13 +226,13 @@ def add_comment(pokemonId):
 
         if result.matched_count == 0:
             logging.debug(f"No Pokémon found for comment with ID: {pokemonId}")
-            return jsonify({"error": f"Pokémon with ID {pokemonId} not found"}), 404
+            return api_error('Pokémon not found.', 404, 'pokemon_not_found')
         if result.modified_count == 0:
             logging.debug(f"Comment not added for Pokémon ID {pokemonId} - no changes made")
-            return jsonify({"error": f"Comment not added for Pokémon ID {pokemonId}"}), 500
+            return api_error('Unable to add the comment right now.', 500, 'comment_create_failed')
 
         new_comment['date'] = new_comment['date'].isoformat()
         return jsonify(new_comment), 201
-    except Exception as e:
-        logging.error(f"Error in add_comment for ID {pokemonId}: {str(e)}")
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    except Exception:
+        logging.exception('Unable to add a comment.')
+        return api_error('Unable to add the comment right now.', 500, 'comment_create_failed')

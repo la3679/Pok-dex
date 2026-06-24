@@ -1,14 +1,12 @@
 from flask import Blueprint, jsonify, request
-from pymongo import MongoClient
-from config import Config
 import random
 import logging
+from database import get_database
+from routes.errors import api_error
 
 game_bp = Blueprint('game', __name__)
 
-# MongoDB connection with authentication
-client = MongoClient(Config.MONGO_URI)
-db = client['PokeMap']
+db = get_database()
 merged_collection = db['MergedPokemonSightings']
 
 @game_bp.route('/api/game/start', methods=['GET'])
@@ -18,13 +16,13 @@ def start_game():
         all_pokemon = list(merged_collection.find())
         if not all_pokemon:
             logging.error("No Pokémon found in the database.")
-            return jsonify({"error": "No Pokémon found in the database."}), 404
+            return api_error('No Pokémon are available to start a battle.', 404, 'battle_pokemon_unavailable')
 
         # Ensure no duplicates by using a set of Pokémon IDs
         pokemon_ids = [pokemon['pokemon']['pokemonId'] for pokemon in all_pokemon]
         if len(pokemon_ids) < 10:  # Need at least 10 Pokémon (7 for user, 3 for CPU)
             logging.error("Not enough Pokémon in the database to start the game.")
-            return jsonify({"error": "Not enough Pokémon in the database to start the game."}), 404
+            return api_error('Not enough Pokémon are available to start a battle.', 404, 'battle_pokemon_unavailable')
 
         # Randomly select 7 Pokémon for the user
         user_pokemon_ids = random.sample(pokemon_ids, 7)
@@ -77,9 +75,9 @@ def start_game():
             "cpuPokemon": cpu_pokemon
         }), 200
 
-    except Exception as e:
-        logging.error(f"Error in start_game: {str(e)}")
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    except Exception:
+        logging.exception('Unable to start a battle.')
+        return api_error('Unable to start a battle right now.', 500, 'battle_start_failed')
 
 @game_bp.route('/api/game/turn', methods=['POST'])
 def process_turn():
@@ -87,7 +85,7 @@ def process_turn():
         data = request.get_json()
         if not data:
             logging.debug("No data provided in process_turn request.")
-            return jsonify({"error": "No data provided."}), 400
+            return api_error('Battle state is required.', 400, 'battle_state_required')
 
         # Extract battle state
         user_team = data.get('userTeam', [])
@@ -171,6 +169,6 @@ def process_turn():
             "winner": winner
         }), 200
 
-    except Exception as e:
-        logging.error(f"Error in process_turn: {str(e)}")
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    except Exception:
+        logging.exception('Unable to process the battle turn.')
+        return api_error('Unable to process the battle turn right now.', 500, 'battle_turn_failed')

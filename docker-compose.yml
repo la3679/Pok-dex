@@ -1,0 +1,13 @@
+services:
+  mongo:
+    image: mongo:8
+    container_name: pokedex-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./data:/seed/data:ro
+      - "./frontend/archive (1):/seed/stats:ro"
+
+volumes:
+  mongo-data:

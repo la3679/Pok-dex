@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import apiBaseUrl from '../../api';
 import './Pokedex.css';
 
 const Pokedex = () => {
@@ -93,7 +94,7 @@ const Pokedex = () => {
         legendary: appliedFilters.legendary || undefined,
       };
 
-      const response = await axios.get('http://localhost:5000/api/pokemon', { params });
+      const response = await axios.get(`${apiBaseUrl}/pokemon`, { params });
       setPokemon(response.data.pokemon);
       setTotalPokemon(response.data.totalPokemon);
       setTotalPages(response.data.totalPages);
@@ -405,7 +406,7 @@ const Pokedex = () => {
 
               <div className="pokemon-image">
                 <img
-                  src={poke.image_path ? `http://localhost:5000/api/images/${poke.image_path}` : 'https://via.placeholder.com/150?text=Pokemon'}
+                  src={poke.image_path ? `${apiBaseUrl}/images/${poke.image_path}` : 'https://via.placeholder.com/150?text=Pokemon'}
                   alt={poke.pokemon.name}
                   onError={(e) => {
                     e.target.onerror = null;

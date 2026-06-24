@@ -4,8 +4,11 @@ import gridfs
 from bson import ObjectId
 from collections import defaultdict
 
-# Connect to MongoDB with the required credentials
-client = pymongo.MongoClient("mongodb://admin:admin@localhost:27017/PokeMap?authSource=admin")
+mongo_uri = os.getenv("MONGO_URI")
+if not mongo_uri:
+    raise RuntimeError("MONGO_URI must be set before running the seed script.")
+
+client = pymongo.MongoClient(mongo_uri)
 db = client["PokeMap"]
 
 # Initialize GridFS

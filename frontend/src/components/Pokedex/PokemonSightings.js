@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import apiBaseUrl from '../../api';
 import './PokemonSightings.css';
 
 const PokemonSightings = () => {
@@ -50,7 +51,7 @@ const PokemonSightings = () => {
     const fetchPokemonSightings = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/pokemon/${pokemonId}`);
+        const response = await axios.get(`${apiBaseUrl}/pokemon/${pokemonId}`);
         const data = response.data;
 
         const transformedSightings = (data.sightings || []).map(sighting => ({
@@ -63,7 +64,7 @@ const PokemonSightings = () => {
         setComments(data.comments || []);
 
         if (data.image_path) {
-          setImageUrl(`http://localhost:5000/api/images/${data.image_path}`);
+          setImageUrl(`${apiBaseUrl}/images/${data.image_path}`);
         } else {
           setImageUrl('https://via.placeholder.com/60?text=Pokemon');
         }
@@ -178,7 +179,13 @@ const PokemonSightings = () => {
         } else {
           window.initMap = () => initializeMap(transformedSightings);
           const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAjjWBrV0bpF5HHcUuDwQK0ZH2s4JJ2XrI&callback=initMap`;
+          const mapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+          if (!mapsApiKey) {
+            setError('Google Maps is not configured. Add REACT_APP_GOOGLE_MAPS_API_KEY to frontend/.env.local.');
+            setLoading(false);
+            return;
+          }
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsApiKey}&callback=initMap`;
           script.async = true;
           script.onerror = () => {
             console.error('Failed to load Google Maps API');
@@ -209,7 +216,7 @@ const PokemonSightings = () => {
 
   const fetchFilteredSightings = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/pokemon/${pokemonId}/sightings`, {
+      const response = await axios.get(`${apiBaseUrl}/pokemon/${pokemonId}/sightings`, {
         params: {
           latitude: parseFloat(customCoordinates.latitude),
           longitude: parseFloat(customCoordinates.longitude),
@@ -333,7 +340,7 @@ const PokemonSightings = () => {
       radius: 10
     });
 
-    const response = await axios.get(`http://localhost:5000/api/pokemon/${pokemonId}`);
+    const response = await axios.get(`${apiBaseUrl}/pokemon/${pokemonId}`);
     const transformedSightings = (response.data.sightings || []).map(sighting => ({
       ...sighting,
       coords: sighting.location
@@ -409,7 +416,7 @@ const PokemonSightings = () => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/pokemon/${pokemonId}/comments`, {
+      const response = await axios.post(`${apiBaseUrl}/pokemon/${pokemonId}/comments`, {
         text: comment,
         author: 'CurrentUser'
       });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import apiBaseUrl from '../../api';
 import './PokemonGame.css';
 
 const PokemonGame = () => {
@@ -43,7 +44,7 @@ const PokemonGame = () => {
   // Fetch Pokémon when the component mounts or when "Play Again" is clicked
   const fetchPokemon = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/game/start');
+      const response = await axios.get(`${apiBaseUrl}/game/start`);
       const { userPokemon, cpuPokemon } = response.data;
 
       // Initialize health and attack power for user Pokémon
@@ -113,7 +114,7 @@ const PokemonGame = () => {
   // Process the next turn
   const handleNextTurn = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/game/turn', {
+      const response = await axios.post(`${apiBaseUrl}/game/turn`, {
         userTeam,
         cpuTeam,
         currentTurn
@@ -166,7 +167,7 @@ const PokemonGame = () => {
         <div className="pokemon-image">
           {pokemon.image_path ? (
             <img
-              src={`http://localhost:5000/api/images/${pokemon.image_path}`}
+              src={`${apiBaseUrl}/images/${pokemon.image_path}`}
               alt={pokemon.pokemon.name}
               onError={(e) => {
                 e.target.onerror = null;

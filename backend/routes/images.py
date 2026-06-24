@@ -1,15 +1,14 @@
-from flask import Blueprint, send_file, jsonify
+from flask import Blueprint, send_file
 from io import BytesIO
-from pymongo import MongoClient
-from config import Config
 from gridfs import GridFS
 import bson
+import gridfs
+from database import get_database
+from routes.errors import api_error
 
 images_bp = Blueprint('images', __name__)
 
-# MongoDB connection with authentication
-client = MongoClient(Config.MONGO_URI)
-db = client['PokeMap']
+db = get_database()
 fs = GridFS(db, collection='images')
 
 @images_bp.route('/api/images/<image_id>', methods=['GET'])
@@ -25,7 +24,7 @@ def get_image(image_id):
             mimetype='image/png',
             as_attachment=False
         )
-    except (bson.errors.InvalidId, gridfs.errors.NoFile) as e:
-        return jsonify({"error": str(e)}), 404
-    except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    except (bson.errors.InvalidId, gridfs.errors.NoFile):
+        return api_error('Image not found.', 404, 'image_not_found')
+    except Exception:
+        return api_error('Unable to load the image right now.', 500, 'image_load_failed')
