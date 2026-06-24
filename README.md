@@ -75,6 +75,19 @@ To reset the Docker database before seeding:
 .\scripts\setup-local.ps1 -ResetDatabase
 ```
 
+## Rich data pipeline
+
+Phase 2 adds a repeatable PokéAPI-first seed workflow. It discovers the available catalog at runtime, stores canonical Pokémon/forms/species/moves/types/evolutions, and keeps the existing sightings data in a normalized geospatial collection.
+
+```powershell
+Push-Location backend
+python -m scripts.seed_database
+python -m scripts.validate_database
+Pop-Location
+```
+
+For a faster development-only smoke import, pass `--max-records 10`; the normal command has no artificial Pokémon limit. Imports use MongoDB upserts and `import_logs` checkpoints, so interrupted runs resume safely. Raw datasets remain local and ignored by Git.
+
 ## API
 
 | Method | Endpoint | Description |
