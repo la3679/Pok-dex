@@ -1,6 +1,6 @@
 import math
 import re
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 
 from repositories.pokemon_repository import PokemonRepository
 from serializers.pokemon import comment as serialize_comment
@@ -128,6 +128,56 @@ class PokemonService:
         records = self.repository.find_sightings(record['pokemon_id'], limit, longitude, latitude, radius)
         return [sighting(item) for item in records]
 
+    def map_sightings(self, args):
+        pokemon_id = optional_integer(args.get('pokemonId'), 'pokemonId', minimum=1)
+        latitude = decimal(args.get('latitude'), 'latitude', minimum=-90, maximum=90)
+        longitude = decimal(args.get('longitude'), 'longitude', minimum=-180, maximum=180)
+        if (latitude is None) != (longitude is None):
+            raise ValidationError('latitude and longitude must be supplied together.')
+        radius = decimal(args.get('radius'), 'radius', default=25, minimum=0.1, maximum=500)
+        limit = integer(args.get('limit'), 'limit', default=1000, minimum=1, maximum=5000)
+        query = {}
+        if pokemon_id:
+            self._require_pokemon(pokemon_id)
+            query['pokemon_id'] = pokemon_id
+        start = self._date(args.get('dateFrom'), 'dateFrom', end=False)
+        end = self._date(args.get('dateTo'), 'dateTo', end=True)
+        if start and end and start > end:
+            raise ValidationError('dateFrom cannot be later than dateTo.')
+        if start or end:
+            query['appeared_at'] = {}
+            if start:
+                query['appeared_at']['$gte'] = start
+            if end:
+                query['appeared_at']['$lte'] = end
+        records = self.repository.list_map_sightings(query, limit, longitude, latitude, radius)
+        metadata = self.repository.pokemon_map_metadata({record['pokemon_id'] for record in records})
+        items = []
+        for record in records:
+            pokemon = metadata.get(record['pokemon_id'], {})
+            items.append({
+                'id': record.get('source_id') or f"{record['pokemon_id']}:{record.get('appeared_at', '')}",
+                'pokemon_id': record['pokemon_id'],
+                'pokemon_name': pokemon.get('name', f"Pokémon #{record['pokemon_id']}"),
+                'types': pokemon.get('types', []),
+                'image_url': pokemon.get('sprites', {}).get('official_artwork') or pokemon.get('sprites', {}).get('default'),
+                'location': record['location'],
+                'date': record.get('appeared_at').isoformat() if record.get('appeared_at') else None,
+                'source': record.get('source'),
+            })
+        all_filtered = self.repository.sighting_count(query)
+        dates = [item['date'] for item in items if item['date']]
+        return {
+            'sightings': items,
+            'summary': {
+                'total': all_filtered,
+                'visible': len(items),
+                'radius_km': radius if latitude is not None else None,
+                'first_date': min(dates) if dates else None,
+                'latest_date': max(dates) if dates else None,
+            },
+        }
+
     def add_comment(self, pokemon_id, payload):
         record = self._require_pokemon(pokemon_id)
         payload = payload or {}
@@ -197,6 +247,16 @@ class PokemonService:
         if not record:
             raise LookupError('Pokémon not found.')
         return record
+
+    @staticmethod
+    def _date(value, name, end):
+        if not value:
+            return None
+        try:
+            parsed = datetime.fromisoformat(value).date()
+        except ValueError:
+            raise ValidationError(f'{name} must use YYYY-MM-DD.') from None
+        return datetime.combine(parsed, time.max if end else time.min, tzinfo=timezone.utc)
 
     @staticmethod
     def _serialize_species(species):

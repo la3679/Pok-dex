@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import pytest
 
 from services.pokemon_service import PokemonService
@@ -53,3 +55,21 @@ def test_type_chart_calculates_effectiveness():
     result = PokemonService(FakeRepository()).type_chart({'attacking': 'fire', 'defending': 'grass'})
 
     assert result['multiplier'] == 2
+
+
+def test_map_sightings_returns_enriched_summary():
+    class MapRepository(FakeRepository):
+        def list_map_sightings(self, query, limit, longitude=None, latitude=None, radius_km=None):
+            assert query['pokemon_id'] == 25
+            return [{'pokemon_id': 25, 'location': {'type': 'Point', 'coordinates': [-73.9, 40.7]}, 'appeared_at': datetime(2024, 1, 2, tzinfo=timezone.utc), 'source': 'test'}]
+
+        def pokemon_map_metadata(self, pokemon_ids):
+            return {25: {'pokemon_id': 25, 'name': 'Pikachu', 'types': ['electric'], 'sprites': {}}}
+
+        def sighting_count(self, query):
+            return 1
+
+    result = PokemonService(MapRepository()).map_sightings({'pokemonId': '25', 'limit': '10'})
+
+    assert result['summary']['visible'] == 1
+    assert result['sightings'][0]['pokemon_name'] == 'Pikachu'

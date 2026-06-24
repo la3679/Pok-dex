@@ -43,6 +43,27 @@ class PokemonRepository:
             return list(self.db.pokemon_sightings.find(query, {'_id': 0}).limit(limit))
         return list(self.db.pokemon_sightings.find(query, {'_id': 0}).sort('appeared_at', -1).limit(limit))
 
+    def list_map_sightings(self, query, limit, longitude=None, latitude=None, radius_km=None):
+        if longitude is not None and latitude is not None:
+            query = {
+                **query,
+                'location': {
+                    '$nearSphere': {
+                        '$geometry': {'type': 'Point', 'coordinates': [longitude, latitude]},
+                        '$maxDistance': radius_km * 1000,
+                    }
+                },
+            }
+            return list(self.db.pokemon_sightings.find(query, {'_id': 0}).limit(limit))
+        return list(self.db.pokemon_sightings.find(query, {'_id': 0}).sort('appeared_at', -1).limit(limit))
+
+    def sighting_count(self, query):
+        return self.db.pokemon_sightings.count_documents(query)
+
+    def pokemon_map_metadata(self, pokemon_ids):
+        rows = self.db.pokemon.find({'pokemon_id': {'$in': list(pokemon_ids)}}, {'_id': 0, 'pokemon_id': 1, 'name': 1, 'types': 1, 'sprites': 1})
+        return {row['pokemon_id']: row for row in rows}
+
     def find_type(self, api_name):
         return self.db.pokemon_types.find_one({'api_name': api_name}, {'_id': 0})
 

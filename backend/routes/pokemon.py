@@ -68,6 +68,14 @@ def get_sightings(pokemon_id):
         return handle_error(error, 'sightings_failed')
 
 
+@pokemon_bp.route('/sightings', methods=['GET'])
+def get_map_sightings():
+    try:
+        return jsonify(service.map_sightings(request.args)), 200
+    except Exception as error:
+        return handle_error(error, 'map_sightings_failed')
+
+
 @pokemon_bp.route('/pokemon/<pokemon_id>/comments', methods=['POST'])
 def add_comment(pokemon_id):
     try:

@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
-import PokemonSightings from './components/Pokedex/PokemonSightings';
 import LandingPage from './pages/LandingPage';
 import PokedexPage from './pages/PokedexPage';
 import PokemonDetailPage from './pages/PokemonDetailPage';
@@ -13,6 +12,7 @@ import TeamBuilderPage from './pages/TeamBuilderPage';
 import TypeChartPage from './pages/TypeChartPage';
 import BattlePage from './pages/BattlePage';
 import BattleHistoryPage from './pages/BattleHistoryPage';
+import SightingsMapPage from './pages/SightingsMapPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -20,8 +20,8 @@ function AnimatedRoutes() {
     <Route path="/" element={<LandingPage />} />
     <Route path="/pokedex" element={<PokedexPage />} />
     <Route path="/pokemon/:pokemonId" element={<PokemonDetailPage />} />
-    <Route path="/pokemon/sightings/:pokemonId" element={<PokemonSightings />} />
-    <Route path="/map" element={<FeaturePlaceholder feature="map" />} />
+    <Route path="/pokemon/sightings/:pokemonId" element={<SightingsMapPage />} />
+    <Route path="/map" element={<SightingsMapPage />} />
     <Route path="/battle" element={<BattlePage />} />
     <Route path="/game" element={<Navigate to="/battle" replace />} />
     <Route path="/favorites" element={<PersonalCollectionPage collection="favorites" />} />
