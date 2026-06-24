@@ -7,7 +7,7 @@
 | 0 | Audit and architecture plan — complete | MVP | Low | — |
 | 1 | Secure, repeatable local foundation — complete | MVP | Medium | 0 |
 | 2 | Rich Pokémon data pipeline — complete | MVP | High | 1 |
-| 3 | Modular API and validated contracts | MVP | High | 2 |
+| 3 | Modular API and validated contracts — complete | MVP | High | 2 |
 | 4 | Vite frontend and Pokédex redesign | MVP | High | 3 |
 | 5 | Local profile, favorites, recent views | MVP | Medium | 4 |
 | 6 | Compare, type chart, team builder | Portfolio | High | 2, 4, 5 |
@@ -35,4 +35,4 @@ The MVP is a secure local stack, repeatable all-Pokémon seed pipeline, validate
 
 ## Next milestone
 
-Phase 3 will refactor the Flask API to serve the new canonical collections while preserving documented replacements for legacy endpoints.
+Phase 4 will migrate the client to Vite and deliver the responsive Pokédex app shell, shared component system, and redesigned browse/detail experience.

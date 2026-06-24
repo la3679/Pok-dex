@@ -50,6 +50,10 @@ flowchart TD
 
 Sprites will default to documented source URLs. GridFS remains optional for deliberately imported local assets; bulk images will not be committed.
 
+## API structure
+
+The Flask application now separates HTTP routes, service rules, MongoDB repositories, serializers, validation helpers, and ingestion scripts. The Pokédex routes read canonical Phase 2 collections; the existing GridFS image and prototype battle routes remain available until their later redesign phases replace them.
+
 ## Environment flow
 
 `backend/.env.local` supplies server-only local configuration. `frontend/.env.local` supplies the browser-safe API base URL and restricted Google Maps key. Both files are ignored. Example files document only placeholders. Docker development uses a non-production local MongoDB service; deployed credentials are never committed.

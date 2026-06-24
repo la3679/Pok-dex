@@ -95,11 +95,21 @@ For a faster development-only smoke import, pass `--max-records 10`; the normal 
 | GET | `/api/health` | Service and MongoDB availability |
 | GET | `/api/pokemon` | Filtered, paginated Pokémon list |
 | GET | `/api/pokemon/:pokemonId` | Pokémon details |
+| GET | `/api/pokemon/:pokemonId/forms` | Available forms and variants |
+| GET | `/api/pokemon/:pokemonId/moves` | Battle move metadata |
+| GET | `/api/pokemon/:pokemonId/evolutions` | Evolution-chain data |
 | GET | `/api/pokemon/:pokemonId/sightings` | Pokémon sightings, optionally by radius |
 | POST | `/api/pokemon/:pokemonId/comments` | Add a comment |
+| GET | `/api/types` | Canonical type metadata |
+| GET | `/api/type-chart` | Attacking/defending type multiplier |
+| GET | `/api/analytics/summary` | Canonical collection totals |
+| GET | `/api/analytics/types` | Type distribution |
+| GET | `/api/analytics/top-stats` | Top Pokémon by stat |
 | GET | `/api/images/:imageId` | Legacy GridFS image |
 | GET | `/api/game/start` | Battle selection data |
 | POST | `/api/game/turn` | Process a prototype battle turn |
+
+The list API supports validated pagination, legacy-compatible search/type/stat filters, plus generation, ability, and form filters. Expanded API examples and Swagger UI are planned for Phase 13.
 
 ## Testing
 
