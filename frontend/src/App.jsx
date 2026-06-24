@@ -7,6 +7,8 @@ import LandingPage from './pages/LandingPage';
 import PokedexPage from './pages/PokedexPage';
 import PokemonDetailPage from './pages/PokemonDetailPage';
 import FeaturePlaceholder from './pages/FeaturePlaceholder';
+import PersonalCollectionPage from './pages/PersonalCollectionPage';
+import ProfilePage from './pages/ProfilePage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -18,8 +20,9 @@ function AnimatedRoutes() {
     <Route path="/map" element={<FeaturePlaceholder feature="map" />} />
     <Route path="/battle" element={<PokemonGame />} />
     <Route path="/game" element={<Navigate to="/battle" replace />} />
-    <Route path="/favorites" element={<FeaturePlaceholder feature="favorites" />} />
-    <Route path="/recent" element={<FeaturePlaceholder feature="recent" />} />
+    <Route path="/favorites" element={<PersonalCollectionPage collection="favorites" />} />
+    <Route path="/recent" element={<PersonalCollectionPage collection="recent" />} />
+    <Route path="/profile" element={<ProfilePage />} />
     <Route path="/compare" element={<FeaturePlaceholder feature="compare" />} />
     <Route path="/team-builder" element={<FeaturePlaceholder feature="team-builder" />} />
     <Route path="/type-chart" element={<FeaturePlaceholder feature="type-chart" />} />

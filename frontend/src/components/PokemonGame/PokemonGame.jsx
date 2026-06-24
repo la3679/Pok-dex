@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import apiBaseUrl from '../../api';
+import { useProfile } from '../../context/ProfileContext';
 import './PokemonGame.css';
 
 const PokemonGame = () => {
   const navigate = useNavigate();
+  const { recordBattle } = useProfile();
   const [userPokemon, setUserPokemon] = useState([]);
   const [cpuPokemon, setCpuPokemon] = useState([]);
   const [selectedPokemon, setSelectedPokemon] = useState([]);
@@ -128,6 +130,7 @@ const PokemonGame = () => {
       setBattleLog([...battleLog, ...newLog]);
       setGameOver(gameOver);
       setWinner(winner);
+      if (gameOver) recordBattle(winner, userTeam);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to process turn. Please try again.');
     }
