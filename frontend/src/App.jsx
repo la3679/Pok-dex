@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import PokemonSightings from './components/Pokedex/PokemonSightings';
-import PokemonGame from './components/PokemonGame/PokemonGame';
 import LandingPage from './pages/LandingPage';
 import PokedexPage from './pages/PokedexPage';
 import PokemonDetailPage from './pages/PokemonDetailPage';
@@ -12,6 +11,8 @@ import ProfilePage from './pages/ProfilePage';
 import ComparePage from './pages/ComparePage';
 import TeamBuilderPage from './pages/TeamBuilderPage';
 import TypeChartPage from './pages/TypeChartPage';
+import BattlePage from './pages/BattlePage';
+import BattleHistoryPage from './pages/BattleHistoryPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -21,7 +22,7 @@ function AnimatedRoutes() {
     <Route path="/pokemon/:pokemonId" element={<PokemonDetailPage />} />
     <Route path="/pokemon/sightings/:pokemonId" element={<PokemonSightings />} />
     <Route path="/map" element={<FeaturePlaceholder feature="map" />} />
-    <Route path="/battle" element={<PokemonGame />} />
+    <Route path="/battle" element={<BattlePage />} />
     <Route path="/game" element={<Navigate to="/battle" replace />} />
     <Route path="/favorites" element={<PersonalCollectionPage collection="favorites" />} />
     <Route path="/recent" element={<PersonalCollectionPage collection="recent" />} />
@@ -29,7 +30,7 @@ function AnimatedRoutes() {
     <Route path="/compare" element={<ComparePage />} />
     <Route path="/team-builder" element={<TeamBuilderPage />} />
     <Route path="/type-chart" element={<TypeChartPage />} />
-    <Route path="/battle/history" element={<FeaturePlaceholder feature="battle-history" />} />
+    <Route path="/battle/history" element={<BattleHistoryPage />} />
     <Route path="/analytics" element={<FeaturePlaceholder feature="analytics" />} />
     <Route path="/about" element={<FeaturePlaceholder feature="about" />} />
     <Route path="*" element={<Navigate to="/" replace />} />

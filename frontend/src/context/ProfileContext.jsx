@@ -9,6 +9,7 @@ const defaults = {
   preferences: { theme: 'dark', catalogView: 'grid', catalogFilters: { primaryType: '', generation: '', legendary: '', sortOption: 'No.' }, catalogSearch: '' },
   battles: { played: 0, wins: 0, losses: 0, draws: 0, mostUsedPokemon: {} },
   savedTeams: [],
+  battleHistory: [],
 };
 
 function readProfile() {
@@ -50,6 +51,7 @@ export function ProfileProvider({ children }) {
     preferences: profile.preferences,
     battles: profile.battles,
     savedTeams: profile.savedTeams || [],
+    battleHistory: profile.battleHistory || [],
     setPreference(key, value) { setProfile((current) => ({ ...current, preferences: { ...current.preferences, [key]: value } })); },
     isFavorite(item) { const { id } = normalizePokemon(item); return profile.favorites.some((favorite) => favorite.id === id); },
     toggleFavorite(item) {
@@ -62,12 +64,13 @@ export function ProfileProvider({ children }) {
       if (!viewed.id) return;
       setProfile((current) => ({ ...current, recentlyViewed: [{ ...viewed, viewedAt: new Date().toISOString() }, ...current.recentlyViewed.filter((entry) => entry.id !== viewed.id)].slice(0, MAX_RECENT) }));
     },
-    recordBattle(result, team = []) {
+    recordBattle(result, team = [], log = []) {
       const winner = result === 'User' ? 'wins' : result === 'CPU' ? 'losses' : 'draws';
       setProfile((current) => {
         const used = { ...current.battles.mostUsedPokemon };
         team.map(normalizePokemon).filter((entry) => entry.id).forEach((entry) => { used[entry.id] = { ...used[entry.id], ...entry, uses: (used[entry.id]?.uses || 0) + 1 }; });
-        return { ...current, battles: { ...current.battles, played: current.battles.played + 1, [winner]: current.battles[winner] + 1, mostUsedPokemon: used } };
+        const history = [{ id: `${Date.now()}`, result, team: team.map(normalizePokemon), log: log.slice(-20), playedAt: new Date().toISOString() }, ...(current.battleHistory || [])].slice(0, 30);
+        return { ...current, battleHistory: history, battles: { ...current.battles, played: current.battles.played + 1, [winner]: current.battles[winner] + 1, mostUsedPokemon: used } };
       });
     },
     saveTeam(name, members) {
@@ -75,6 +78,7 @@ export function ProfileProvider({ children }) {
       setProfile((current) => ({ ...current, savedTeams: [team, ...(current.savedTeams || [])].slice(0, 12) }));
     },
     removeSavedTeam(teamId) { setProfile((current) => ({ ...current, savedTeams: (current.savedTeams || []).filter((team) => team.id !== teamId) })); },
+    clearBattleHistory() { setProfile((current) => ({ ...current, battleHistory: [] })); },
     clearLocalData() { setProfile(defaults); },
   }), [profile]);
 
