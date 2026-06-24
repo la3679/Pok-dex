@@ -8,8 +8,8 @@
 | 1 | Secure, repeatable local foundation — complete | MVP | Medium | 0 |
 | 2 | Rich Pokémon data pipeline — complete | MVP | High | 1 |
 | 3 | Modular API and validated contracts — complete | MVP | High | 2 |
-| 4 | Vite frontend and Pokédex redesign | MVP | High | 3 |
-| 5 | Local profile, favorites, recent views | MVP | Medium | 4 |
+| 4 | Vite frontend and Pokédex redesign — complete | MVP | High | 3 |
+| 5 | Local profile, favorites, recent views — complete | MVP | Medium | 4 |
 | 6 | Compare, type chart, team builder | Portfolio | High | 2, 4, 5 |
 | 7 | Classic-inspired battle redesign | Portfolio | High | 2, 3, 4 |
 | 8 | Sightings-map redesign | Portfolio | High | 3, 4 |
@@ -35,4 +35,6 @@ The MVP is a secure local stack, repeatable all-Pokémon seed pipeline, validate
 
 ## Next milestone
 
-Phase 4 is complete: Vite, a responsive Pokédex app shell, accessible shared UI components, landing page, canonical browse experience, and Pokémon detail view are in place. Later roadmap routes are visible as intentional placeholders until their dedicated phases.
+Phase 5 is complete: browser-local favorites, recently viewed Pokémon, catalog preferences, a profile dashboard, battle metrics, and a safe clear-data control are in place. No user data is sent to the backend.
+
+The next milestone is Phase 6: Pokémon comparison, interactive type chart, and team builder.

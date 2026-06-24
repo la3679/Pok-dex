@@ -9,6 +9,7 @@ A full-stack Pokémon exploration project built with React, Vite, Flask, and Mon
 - Responsive Pokédex Atlas shell with dark/light mode, loading, error, and empty states.
 - Searchable, filterable, paginated canonical Pokédex with grid/list/compact views.
 - Pokémon detail records with core stats, types, move metadata, evolution data, and sightings links.
+- Local-first favorites, recently viewed records, catalog preferences, and a privacy-preserving profile dashboard.
 - Pokémon-specific sighting map with radius filtering.
 - Comments on Pokémon records.
 - GridFS image serving for the legacy dataset.
@@ -128,6 +129,10 @@ npm --prefix frontend run build
 - The backend requires its MongoDB connection string from the environment.
 - The Google Maps key is browser-visible by design, so restrict it by HTTP referrer and API in Google Cloud.
 - Run the secret scan described in [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) before committing.
+
+## Local profile data
+
+Favorites, recently viewed Pokémon, catalog preferences, and battle statistics are saved only in the current browser's local storage. They are not sent to the Flask API and can be removed at any time from `/profile` using **Clear local data**.
 
 ## Documentation
 
