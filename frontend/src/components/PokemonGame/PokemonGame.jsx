@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import apiBaseUrl from '../../api';
 import { useProfile } from '../../context/ProfileContext';
@@ -7,6 +7,7 @@ import './PokemonGame.css';
 
 const PokemonGame = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { recordBattle } = useProfile();
   const [userPokemon, setUserPokemon] = useState([]);
   const [cpuPokemon, setCpuPokemon] = useState([]);
@@ -49,8 +50,10 @@ const PokemonGame = () => {
       const response = await axios.get(`${apiBaseUrl}/game/start`);
       const { userPokemon, cpuPokemon } = response.data;
 
+      const requestedTeam = Array.isArray(location.state?.team) && location.state.team.length >= 3 ? location.state.team : userPokemon;
+
       // Initialize health and attack power for user Pokémon
-      const initializedUserPokemon = userPokemon.map(p => ({
+      const initializedUserPokemon = requestedTeam.map(p => ({
         ...p,
         health: p.pokemon.hp + p.pokemon.defense,
         maxHealth: p.pokemon.hp + p.pokemon.defense,

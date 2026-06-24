@@ -10,7 +10,8 @@ class FakeRepository:
             'pokemon_id': 25,
             'name': 'Pikachu',
             'types': ['electric'],
-            'stats': {'hp': 35, 'attack': 55, 'defense': 40, 'speed': 90},
+            'stats': {'hp': 35, 'attack': 55, 'defense': 40, 'speed': 90, 'special-attack': 50, 'special-defense': 50},
+            'abilities': [{'name': 'static', 'is_hidden': False}],
             'height_decimeters': 4,
             'weight_hectograms': 60,
             'sprites': {},
@@ -39,6 +40,8 @@ def test_list_pokemon_returns_legacy_compatible_card_shape():
     assert result['totalPokemon'] == 1
     assert result['pokemon'][0]['pokemon']['pokemonId'] == '25'
     assert result['pokemon'][0]['pokemon']['primary_type'] == 'electric'
+    assert result['pokemon'][0]['pokemon']['special_attack'] == 50
+    assert result['pokemon'][0]['abilities'] == [{'name': 'static', 'is_hidden': False}]
 
 
 def test_list_pokemon_rejects_invalid_page_size():

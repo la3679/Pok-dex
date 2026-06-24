@@ -8,6 +8,7 @@ const defaults = {
   recentlyViewed: [],
   preferences: { theme: 'dark', catalogView: 'grid', catalogFilters: { primaryType: '', generation: '', legendary: '', sortOption: 'No.' }, catalogSearch: '' },
   battles: { played: 0, wins: 0, losses: 0, draws: 0, mostUsedPokemon: {} },
+  savedTeams: [],
 };
 
 function readProfile() {
@@ -30,6 +31,12 @@ function normalizePokemon(item) {
   };
 }
 
+function normalizeTeamPokemon(item) {
+  const normalized = normalizePokemon(item);
+  const pokemon = item?.pokemon || item || {};
+  return { ...normalized, stats: { hp: pokemon.hp || 0, attack: pokemon.attack || 0, defense: pokemon.defense || 0, speed: pokemon.speed || 0, special_attack: pokemon.special_attack || 0, special_defense: pokemon.special_defense || 0 }, height: pokemon.height, weight: pokemon.weight, capture_rate: pokemon.capture_rate };
+}
+
 const ProfileContext = createContext(null);
 
 export function ProfileProvider({ children }) {
@@ -42,6 +49,7 @@ export function ProfileProvider({ children }) {
     recentlyViewed: profile.recentlyViewed,
     preferences: profile.preferences,
     battles: profile.battles,
+    savedTeams: profile.savedTeams || [],
     setPreference(key, value) { setProfile((current) => ({ ...current, preferences: { ...current.preferences, [key]: value } })); },
     isFavorite(item) { const { id } = normalizePokemon(item); return profile.favorites.some((favorite) => favorite.id === id); },
     toggleFavorite(item) {
@@ -62,6 +70,11 @@ export function ProfileProvider({ children }) {
         return { ...current, battles: { ...current.battles, played: current.battles.played + 1, [winner]: current.battles[winner] + 1, mostUsedPokemon: used } };
       });
     },
+    saveTeam(name, members) {
+      const team = { id: `${Date.now()}`, name: name.trim() || `Team ${new Date().toLocaleDateString()}`, members: members.map(normalizeTeamPokemon), savedAt: new Date().toISOString() };
+      setProfile((current) => ({ ...current, savedTeams: [team, ...(current.savedTeams || [])].slice(0, 12) }));
+    },
+    removeSavedTeam(teamId) { setProfile((current) => ({ ...current, savedTeams: (current.savedTeams || []).filter((team) => team.id !== teamId) })); },
     clearLocalData() { setProfile(defaults); },
   }), [profile]);
 

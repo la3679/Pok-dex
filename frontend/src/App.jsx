@@ -9,6 +9,9 @@ import PokemonDetailPage from './pages/PokemonDetailPage';
 import FeaturePlaceholder from './pages/FeaturePlaceholder';
 import PersonalCollectionPage from './pages/PersonalCollectionPage';
 import ProfilePage from './pages/ProfilePage';
+import ComparePage from './pages/ComparePage';
+import TeamBuilderPage from './pages/TeamBuilderPage';
+import TypeChartPage from './pages/TypeChartPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -23,9 +26,9 @@ function AnimatedRoutes() {
     <Route path="/favorites" element={<PersonalCollectionPage collection="favorites" />} />
     <Route path="/recent" element={<PersonalCollectionPage collection="recent" />} />
     <Route path="/profile" element={<ProfilePage />} />
-    <Route path="/compare" element={<FeaturePlaceholder feature="compare" />} />
-    <Route path="/team-builder" element={<FeaturePlaceholder feature="team-builder" />} />
-    <Route path="/type-chart" element={<FeaturePlaceholder feature="type-chart" />} />
+    <Route path="/compare" element={<ComparePage />} />
+    <Route path="/team-builder" element={<TeamBuilderPage />} />
+    <Route path="/type-chart" element={<TypeChartPage />} />
     <Route path="/battle/history" element={<FeaturePlaceholder feature="battle-history" />} />
     <Route path="/analytics" element={<FeaturePlaceholder feature="analytics" />} />
     <Route path="/about" element={<FeaturePlaceholder feature="about" />} />
