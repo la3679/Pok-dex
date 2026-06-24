@@ -26,7 +26,7 @@
 - Flask uses three Blueprint modules that directly create MongoDB clients and read the legacy `MergedPokemonSightings` collection. Images are served from GridFS.
 - The legacy import creates 144 merged Pokémon records from the sightings dataset, while the available stats dataset contains more entries. The target data model removes that artificial browsing limit.
 - The project has no automated test suite, CI workflow, app factory, shared API error contract, or committed architecture documentation.
-- The frontend still uses Create React App 3. The redesign will migrate it to Vite before major interface work.
+- The frontend now uses Vite with React and keeps the documented `REACT_APP_*` environment variable names compatible during the migration.
 - Existing local setup files contained configuration that must not be tracked. Phase 1 removes credentials and hardcoded browser API configuration from source control.
 
 ## MVP definition
@@ -35,4 +35,4 @@ The MVP is a secure local stack, repeatable all-Pokémon seed pipeline, validate
 
 ## Next milestone
 
-Phase 4 will migrate the client to Vite and deliver the responsive Pokédex app shell, shared component system, and redesigned browse/detail experience.
+Phase 4 is complete: Vite, a responsive Pokédex app shell, accessible shared UI components, landing page, canonical browse experience, and Pokémon detail view are in place. Later roadmap routes are visible as intentional placeholders until their dedicated phases.

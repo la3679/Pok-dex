@@ -10,6 +10,12 @@ The interface will be a modern Pokédex device dashboard: deep charcoal surfaces
 - Responsive app shell with desktop navigation, mobile drawer, theme toggle, skip link, and visible keyboard focus.
 - Reusable components: AppShell, PageHeader, PokemonCard, TypeBadge, StatBar, PokeballLoader, SkeletonCard, ErrorBanner, EmptyState, SearchAutocomplete, FilterPanel, MapPanel, BattleArena, HealthBar, MoveButton, TeamSlot, AnalyticsCard, and ChartCard.
 
+### Phase 4 delivery
+
+- Completed: Vite migration, responsive AppShell, navigation drawer, dark/light theme toggle, skip link, page transitions, and the core shared state components.
+- Completed: landing page, canonical Pokédex browse page, filters, grid/list/compact views, pagination, and Pokémon detail records.
+- Deferred to their dedicated roadmap phases: Favorites, Team Builder, Compare, Type Chart, map controls, battle redesign, and analytics charts. Their routes remain visible as clearly labelled placeholders rather than pretending that features exist.
+
 ## Pages
 
 `/`, `/pokedex`, `/pokemon/:pokemonId`, `/favorites`, `/recent`, `/compare`, `/team-builder`, `/type-chart`, `/map`, `/pokemon/sightings/:pokemonId`, `/battle`, `/battle/history`, `/analytics`, and `/about`.

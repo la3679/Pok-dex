@@ -1,12 +1,14 @@
 # Pokédex Platform
 
-A full-stack Pokémon exploration project built with React, Flask, and MongoDB. The current application includes a searchable Pokédex, Pokémon sightings map, comments, GridFS image delivery, and a battle prototype. It is being modernized into a portfolio-ready Pokédex platform with a repeatable public-data pipeline, strategy tools, analytics, and a redesigned battle experience.
+A full-stack Pokémon exploration project built with React, Vite, Flask, and MongoDB. The current application includes a redesigned Pokédex landing experience, searchable canonical catalog and detail records, Pokémon sightings map, comments, GridFS image delivery, and a battle prototype. It is being modernized into a portfolio-ready Pokédex platform with a repeatable public-data pipeline, strategy tools, analytics, and a redesigned battle experience.
 
 > The active delivery roadmap lives in [docs/ROADMAP.md](docs/ROADMAP.md). Current functionality is documented separately from planned work.
 
 ## Current features
 
-- Searchable and filterable Pokédex backed by MongoDB.
+- Responsive Pokédex Atlas shell with dark/light mode, loading, error, and empty states.
+- Searchable, filterable, paginated canonical Pokédex with grid/list/compact views.
+- Pokémon detail records with core stats, types, move metadata, evolution data, and sightings links.
 - Pokémon-specific sighting map with radius filtering.
 - Comments on Pokémon records.
 - GridFS image serving for the legacy dataset.
@@ -17,7 +19,7 @@ A full-stack Pokémon exploration project built with React, Flask, and MongoDB. 
 
 | Area | Technology |
 | --- | --- |
-| Frontend | React, React Router, Axios, CSS |
+| Frontend | React, Vite, React Router, TanStack Query, Axios, Framer Motion, CSS |
 | Backend | Flask, Flask-CORS, PyMongo |
 | Database | MongoDB, GridFS, GeoJSON sightings |
 | Data | Existing local datasets, planned PokéAPI pipeline |
@@ -67,7 +69,7 @@ The legacy setup script imports the local stats and sightings data, creates Grid
 .\scripts\start-local.ps1
 ```
 
-The app is available at `http://localhost:3000/pokedex`; the API listens on `http://localhost:5000`.
+The app is available at `http://localhost:3000/`; the API listens on `http://localhost:5000`.
 
 To reset the Docker database before seeding:
 
