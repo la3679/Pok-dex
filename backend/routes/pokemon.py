@@ -1,238 +1,116 @@
-from flask import Blueprint, jsonify, request
-from datetime import datetime
 import logging
-from database import get_database
+
+from flask import Blueprint, jsonify, request
+
 from routes.errors import api_error
+from services.pokemon_service import PokemonService
+from services.validation import ValidationError
+
 
 pokemon_bp = Blueprint('pokemon', __name__)
+service = PokemonService()
 
-db = get_database()
-merged_collection = db['MergedPokemonSightings']
+
+def handle_error(error, fallback_code):
+    if isinstance(error, ValidationError):
+        return api_error(str(error), 400, 'invalid_request')
+    if isinstance(error, LookupError):
+        return api_error('Pokémon not found.', 404, 'pokemon_not_found')
+    logging.exception('Pokémon API request failed.')
+    return api_error('Unable to process the Pokémon request right now.', 500, fallback_code)
+
 
 @pokemon_bp.route('/pokemon', methods=['GET'])
 def get_all_pokemon():
     try:
-        # Extract query parameters
-        search_term = request.args.get('searchTerm', '').strip()
-        primary_type = request.args.get('primaryType', '').strip()
-        secondary_type = request.args.get('secondaryType', '').strip()
-        min_height = request.args.get('minHeight', type=float)
-        max_height = request.args.get('maxHeight', type=float)
-        min_weight = request.args.get('minWeight', type=float)
-        max_weight = request.args.get('maxWeight', type=float)
-        min_capture_rate = request.args.get('minCaptureRate', type=int)
-        max_capture_rate = request.args.get('maxCaptureRate', type=int)
-        legendary = request.args.get('legendary', '').strip().lower()
-        sort_option = request.args.get('sortOption', 'No.').strip()
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('perPage', type=int)  # Optional
+        return jsonify(service.list_pokemon(request.args)), 200
+    except Exception as error:
+        return handle_error(error, 'pokemon_list_failed')
 
-        # Build the MongoDB query
-        query = {}
 
-        if search_term:
-            query['pokemon.name'] = {'$regex': search_term, '$options': 'i'}
-        if primary_type:
-            query['pokemon.primary_type'] = {'$regex': f'^{primary_type}$', '$options': 'i'}
-        if secondary_type:
-            query['pokemon.secondary_type'] = {'$regex': f'^{secondary_type}$', '$options': 'i'}
-        if min_height is not None or max_height is not None:
-            height_query = {}
-            if min_height is not None:
-                height_query['$gte'] = min_height
-            if max_height is not None:
-                height_query['$lte'] = max_height
-            query['pokemon.height'] = height_query
-        if min_weight is not None or max_weight is not None:
-            weight_query = {}
-            if min_weight is not None:
-                weight_query['$gte'] = min_weight
-            if max_weight is not None:
-                weight_query['$lte'] = max_weight
-            query['pokemon.weight'] = weight_query
-        if min_capture_rate is not None or max_capture_rate is not None:
-            capture_rate_query = {}
-            if min_capture_rate is not None:
-                capture_rate_query['$gte'] = min_capture_rate
-            if max_capture_rate is not None:
-                capture_rate_query['$lte'] = max_capture_rate
-            query['pokemon.capture_rate'] = capture_rate_query
-        if legendary in ['true', 'false']:
-            query['pokemon.legendary'] = legendary == 'true'
-
-        # Sorting
-        sort_field = 'pokemon.pokemonId'
-        sort_direction = 1
-        if sort_option == 'Name':
-            sort_field = 'pokemon.name'
-        elif sort_option == 'HP':
-            sort_field = 'pokemon.hp'
-            sort_direction = -1
-        elif sort_option == 'Attack':
-            sort_field = 'pokemon.attack'
-            sort_direction = -1
-        elif sort_option == 'Defense':
-            sort_field = 'pokemon.defense'
-            sort_direction = -1
-        elif sort_option == 'Speed':
-            sort_field = 'pokemon.speed'
-            sort_direction = -1
-        elif sort_option == 'Height':
-            sort_field = 'pokemon.height'
-            sort_direction = -1
-        elif sort_option == 'Weight':
-            sort_field = 'pokemon.weight'
-            sort_direction = -1
-        elif sort_option == 'Capture Rate':
-            sort_field = 'pokemon.capture_rate'
-            sort_direction = 1
-
-        total_pokemon = merged_collection.count_documents(query)
-        total_pages = 1
-        skip = 0
-        limit = None
-        if per_page:
-            skip = (page - 1) * per_page
-            limit = per_page
-            total_pages = (total_pokemon + per_page - 1) // per_page
-
-        pokemon_data = list(
-            merged_collection
-            .find(query)
-            .sort(sort_field, sort_direction)
-            .skip(skip)
-            .limit(limit if limit else total_pokemon)
-        )
-
-        for pokemon in pokemon_data:
-            pokemon['_id'] = str(pokemon['_id'])
-            if pokemon.get('image_path'):
-                pokemon['image_path'] = str(pokemon['image_path'])
-            for sighting in pokemon.get('sightings', []):
-                if isinstance(sighting['date'], datetime):
-                    sighting['date'] = sighting['date'].isoformat()
-            for comment in pokemon.get('comments', []):
-                if isinstance(comment['date'], datetime):
-                    comment['date'] = comment['date'].isoformat()
-
-        return jsonify({
-            'pokemon': pokemon_data,
-            'totalPokemon': total_pokemon,
-            'totalPages': total_pages,
-            'currentPage': page
-        }), 200
-
-    except Exception:
-        logging.exception('Unable to list Pokémon.')
-        return api_error('Unable to load Pokémon right now.', 500, 'pokemon_list_failed')
-
-@pokemon_bp.route('/pokemon/<pokemonId>', methods=['GET'])
-def get_pokemon_by_id(pokemonId):
+@pokemon_bp.route('/pokemon/<pokemon_id>', methods=['GET'])
+def get_pokemon_by_id(pokemon_id):
     try:
-        # Use pokemonId as a string directly, no conversion to int
-        pokemon = merged_collection.find_one({"pokemon.pokemonId": pokemonId})
-        if not pokemon:
-            logging.debug(f"No Pokémon found for ID: {pokemonId}")
-            return api_error('Pokémon not found.', 404, 'pokemon_not_found')
+        return jsonify(service.detail(pokemon_id)), 200
+    except Exception as error:
+        return handle_error(error, 'pokemon_detail_failed')
 
-        # Convert ObjectId to string for JSON serialization
-        pokemon['_id'] = str(pokemon['_id'])
-        if pokemon.get('image_path'):
-            pokemon['image_path'] = str(pokemon['image_path'])
-        # Convert datetime objects to ISO format
-        for sighting in pokemon.get('sightings', []):
-            if isinstance(sighting['date'], datetime):
-                sighting['date'] = sighting['date'].isoformat()
-        for comment in pokemon.get('comments', []):
-            if isinstance(comment['date'], datetime):
-                comment['date'] = comment['date'].isoformat()
 
-        return jsonify(pokemon), 200
-    except Exception:
-        logging.exception('Unable to load Pokémon details.')
-        return api_error('Unable to load Pokémon details right now.', 500, 'pokemon_detail_failed')
-
-@pokemon_bp.route('/pokemon/<pokemonId>/sightings', methods=['GET'])
-def get_sightings_by_area(pokemonId):
+@pokemon_bp.route('/pokemon/<pokemon_id>/forms', methods=['GET'])
+def get_pokemon_forms(pokemon_id):
     try:
-        # Keep pokemonId as a string, no conversion
-        latitude = request.args.get('latitude', type=float)
-        longitude = request.args.get('longitude', type=float)
-        radius = request.args.get('radius', 10, type=float)
+        return jsonify({'pokemon_id': pokemon_id, 'forms': service.forms(pokemon_id)}), 200
+    except Exception as error:
+        return handle_error(error, 'pokemon_forms_failed')
 
-        pokemon = merged_collection.find_one({"pokemon.pokemonId": pokemonId})
-        if not pokemon:
-            logging.debug(f"No Pokémon found for sightings with ID: {pokemonId}")
-            return api_error('Pokémon not found.', 404, 'pokemon_not_found')
 
-        sightings = pokemon.get('sightings', [])
-        filtered_sightings = sightings
-
-        if latitude is not None and longitude is not None:
-            center = [longitude, latitude]  # [lng, lat] order for MongoDB
-            radius_in_radians = radius / 6378.137  # Earth's radius in km
-
-            pipeline = [
-                {"$match": {"pokemon.pokemonId": pokemonId}},  # String match
-                {"$unwind": "$sightings"},
-                {
-                    "$match": {
-                        "sightings.location": {
-                            "$geoWithin": {
-                                "$centerSphere": [center, radius_in_radians]
-                            }
-                        }
-                    }
-                },
-                {
-                    "$group": {
-                        "_id": "$_id",
-                        "sightings": {"$push": "$sightings"}
-                    }
-                }
-            ]
-
-            result = list(merged_collection.aggregate(pipeline))
-            filtered_sightings = result[0]['sightings'] if result else []
-
-        for sighting in filtered_sightings:
-            if isinstance(sighting['date'], datetime):
-                sighting['date'] = sighting['date'].isoformat()
-
-        return jsonify(filtered_sightings), 200
-    except Exception:
-        logging.exception('Unable to load sightings.')
-        return api_error('Unable to load sightings right now.', 500, 'sightings_failed')
-
-@pokemon_bp.route('/pokemon/<pokemonId>/comments', methods=['POST'])
-def add_comment(pokemonId):
+@pokemon_bp.route('/pokemon/<pokemon_id>/moves', methods=['GET'])
+def get_pokemon_moves(pokemon_id):
     try:
-        # Keep pokemonId as a string, no conversion
-        data = request.get_json()
-        if not data or 'text' not in data or not data['text'].strip():
-            logging.debug('Invalid comment payload for Pokémon ID %s.', pokemonId)
-            return api_error('Comment text is required.', 400, 'comment_text_required')
+        return jsonify({'pokemon_id': pokemon_id, 'moves': service.moves(pokemon_id, request.args)}), 200
+    except Exception as error:
+        return handle_error(error, 'pokemon_moves_failed')
 
-        new_comment = {
-            "text": data['text'],
-            "author": data.get('author', 'CurrentUser'),
-            "date": datetime.utcnow()
-        }
 
-        result = merged_collection.update_one(
-            {"pokemon.pokemonId": pokemonId},  # String match
-            {"$push": {"comments": new_comment}}
-        )
+@pokemon_bp.route('/pokemon/<pokemon_id>/evolutions', methods=['GET'])
+def get_pokemon_evolutions(pokemon_id):
+    try:
+        return jsonify(service.evolutions(pokemon_id)), 200
+    except Exception as error:
+        return handle_error(error, 'pokemon_evolutions_failed')
 
-        if result.matched_count == 0:
-            logging.debug(f"No Pokémon found for comment with ID: {pokemonId}")
-            return api_error('Pokémon not found.', 404, 'pokemon_not_found')
-        if result.modified_count == 0:
-            logging.debug(f"Comment not added for Pokémon ID {pokemonId} - no changes made")
-            return api_error('Unable to add the comment right now.', 500, 'comment_create_failed')
 
-        new_comment['date'] = new_comment['date'].isoformat()
-        return jsonify(new_comment), 201
-    except Exception:
-        logging.exception('Unable to add a comment.')
-        return api_error('Unable to add the comment right now.', 500, 'comment_create_failed')
+@pokemon_bp.route('/pokemon/<pokemon_id>/sightings', methods=['GET'])
+def get_sightings(pokemon_id):
+    try:
+        return jsonify(service.sightings(pokemon_id, request.args)), 200
+    except Exception as error:
+        return handle_error(error, 'sightings_failed')
+
+
+@pokemon_bp.route('/pokemon/<pokemon_id>/comments', methods=['POST'])
+def add_comment(pokemon_id):
+    try:
+        return jsonify(service.add_comment(pokemon_id, request.get_json(silent=True))), 201
+    except Exception as error:
+        return handle_error(error, 'comment_create_failed')
+
+
+@pokemon_bp.route('/types', methods=['GET'])
+def get_types():
+    try:
+        return jsonify({'types': service.types()}), 200
+    except Exception as error:
+        return handle_error(error, 'types_failed')
+
+
+@pokemon_bp.route('/type-chart', methods=['GET'])
+def get_type_chart():
+    try:
+        return jsonify(service.type_chart(request.args)), 200
+    except Exception as error:
+        return handle_error(error, 'type_chart_failed')
+
+
+@pokemon_bp.route('/analytics/summary', methods=['GET'])
+def get_analytics_summary():
+    try:
+        return jsonify(service.analytics_summary()), 200
+    except Exception as error:
+        return handle_error(error, 'analytics_summary_failed')
+
+
+@pokemon_bp.route('/analytics/types', methods=['GET'])
+def get_analytics_types():
+    try:
+        return jsonify({'types': service.analytics_types()}), 200
+    except Exception as error:
+        return handle_error(error, 'analytics_types_failed')
+
+
+@pokemon_bp.route('/analytics/top-stats', methods=['GET'])
+def get_analytics_top_stats():
+    try:
+        return jsonify({'pokemon': service.analytics_top_stats(request.args)}), 200
+    except Exception as error:
+        return handle_error(error, 'analytics_top_stats_failed')
