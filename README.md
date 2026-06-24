@@ -14,7 +14,7 @@ A full-stack Pokémon exploration project built with React, Vite, Flask, and Mon
 - Pokémon-specific sighting map with radius filtering.
 - Comments on Pokémon records.
 - GridFS image serving for the legacy dataset.
-- Basic turn-based battle prototype.
+- Classic-inspired turn-based battle simulator with moves, type matchups, switching, CPU difficulty, status effects, and local history.
 - Docker-backed local MongoDB setup and backend health endpoint.
 
 ## Stack
