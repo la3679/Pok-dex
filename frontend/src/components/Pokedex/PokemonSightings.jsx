@@ -51,10 +51,13 @@ const PokemonSightings = () => {
     const fetchPokemonSightings = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${apiBaseUrl}/pokemon/${pokemonId}`);
+        const [response, sightingsResponse] = await Promise.all([
+          axios.get(`${apiBaseUrl}/pokemon/${pokemonId}`),
+          axios.get(`${apiBaseUrl}/pokemon/${pokemonId}/sightings`, { params: { limit: 1000 } }),
+        ]);
         const data = response.data;
 
-        const transformedSightings = (data.sightings || []).map(sighting => ({
+        const transformedSightings = (sightingsResponse.data || []).map(sighting => ({
           ...sighting,
           coords: sighting.location
         }));
@@ -63,7 +66,9 @@ const PokemonSightings = () => {
         setSightings(transformedSightings);
         setComments(data.comments || []);
 
-        if (data.image_path) {
+        if (data.image_url) {
+          setImageUrl(data.image_url);
+        } else if (data.image_path) {
           setImageUrl(`${apiBaseUrl}/images/${data.image_path}`);
         } else {
           setImageUrl('https://via.placeholder.com/60?text=Pokemon');
@@ -179,7 +184,8 @@ const PokemonSightings = () => {
         } else {
           window.initMap = () => initializeMap(transformedSightings);
           const script = document.createElement('script');
-          const mapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+          const mapsApiKey = import.meta.env.REACT_APP_GOOGLE_MAPS_API_KEY
+            || import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
           if (!mapsApiKey) {
             setError('Google Maps is not configured. Add REACT_APP_GOOGLE_MAPS_API_KEY to frontend/.env.local.');
             setLoading(false);

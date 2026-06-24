@@ -25,3 +25,4 @@ backend/.env.local
 frontend/.env
 frontend/.env.local
 frontend/build/
+frontend/dist/
