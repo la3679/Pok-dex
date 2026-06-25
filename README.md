@@ -28,15 +28,15 @@ Screenshots should be captured into `docs/screenshots/`. Placeholder guidance is
 
 ## Feature overview
 
-- Pokédex-style responsive UI with a device/dashboard shell, theme toggle, page transitions, skeleton states, empty states, and error banners.
-- Searchable, filterable canonical Pokédex with pagination, grid/list/compact views, type filters, generation filters, ability filters, form filters, and stat-range filters.
+- Pokédex-style responsive UI with a device boot sequence, page transitions, theme toggle, skeleton states, empty states, and error banners.
+- Searchable, filterable canonical Pokédex with pagination, grid/list/compact views, autocomplete search, type filters, generation filters, ability filters, form filters, and stat-range filters.
 - Pokémon detail pages with sprites, stats, types, abilities, move metadata, evolution data, comments, sightings preview, favorites, compare actions, and team-builder actions.
 - Local-first favorites, recently viewed Pokémon, profile metrics, saved UI preferences, saved teams, battle history, and browser-only exports.
 - Pokémon comparison, interactive type-effectiveness chart, and team builder with type coverage analysis and rule-based recommendations.
 - General and Pokémon-specific sightings map with date filtering, radius filtering, current-location controls, marker clusters, custom canvas heatmap, hotspot summaries, and sidebar navigation.
 - Classic-inspired battle simulator with active Pokémon combat, move buttons, switching, health bars, type effectiveness, speed turn order, status effects, CPU difficulty, victory/defeat states, and local battle history.
 - MongoDB-backed analytics dashboard for totals, type distribution, generation distribution, stat leaders, average stats by type, physical extremes, and most-sighted Pokémon.
-- Local achievements, quiz modes, explainable “Who Would Win” matchup estimates, and JSON/CSV export options.
+- Local achievements, quiz modes, explainable “Who Would Win” matchup estimates, JSON/CSV export options, and a dedicated About page.
 - Repeatable data pipeline for PokéAPI enrichment, legacy dataset normalization, MongoDB indexing, and validation.
 - Docker Compose developer workflow, OpenAPI/Swagger API documentation, pytest/Vitest coverage, frontend build checks, GitHub Actions CI, and tracked-file secret scanning.
 

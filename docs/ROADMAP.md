@@ -26,8 +26,9 @@
 - The backend exposes modular Flask routes, services, repositories, serializers, validation helpers, ingestion scripts, health checks, analytics endpoints, and OpenAPI docs.
 - The database can be seeded from PokéAPI and approved local datasets, then validated for collection counts, duplicates, malformed sightings, and indexes.
 - The React/Vite frontend includes the redesigned Pokédex shell, catalog, detail pages, favorites, recent views, profile, compare, type chart, team builder, battle, map, analytics, achievements, quiz, matchup, and export features.
+- The UI includes device boot sequences, page transitions, an advanced autocomplete search dropdown, and comprehensive filter controls.
 - The sightings map includes marker, cluster, custom heatmap, radius, date, current-location, sidebar, and hotspot experiences without using the removed Google Heatmap Layer.
-- Dockerfiles, Docker Compose, PowerShell helpers, pytest, Vitest, frontend build checks, GitHub Actions, secret scanning, Swagger UI, and portfolio docs are in place.
+- Dockerfiles, Docker Compose, PowerShell helpers, pytest, vitest (with jsdom for deep integration tests), frontend build checks, GitHub Actions, secret scanning, Swagger UI, and portfolio docs are in place.
 
 ## Final review checklist
 
