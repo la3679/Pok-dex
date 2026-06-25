@@ -20,7 +20,9 @@ export default function AchievementsPage() {
       <section className="achievement-summary terminal-panel">
         <div>
           <strong className="sys-prompt">{achievements.unlocked}</strong>
-          <span className="terminal-text">of {achievements.total} unlocked</span>
+          <span className="terminal-text">
+            of {achievements.total} unlocked
+          </span>
         </div>
         <i>
           <b
@@ -36,7 +38,9 @@ export default function AchievementsPage() {
             className={`terminal-panel ${achievement.unlocked ? "is-unlocked" : ""}`}
             key={achievement.id}
           >
-            <span aria-hidden="true" className="sys-prompt">{achievement.icon}</span>
+            <span aria-hidden="true" className="sys-prompt">
+              {achievement.icon}
+            </span>
             <div>
               <small className="terminal-text">
                 {achievement.unlocked

@@ -126,12 +126,18 @@ export default function WhoWouldWinPage() {
             <p className="terminal-text">{outcome.explanation}</p>
             <div className="terminal-panel">
               <span className="terminal-text">
-                {first.pokemon.name}: <strong className="sys-prompt">{outcome.firstMultiplier}×</strong> best type
-                matchup
+                {first.pokemon.name}:{" "}
+                <strong className="sys-prompt">
+                  {outcome.firstMultiplier}×
+                </strong>{" "}
+                best type matchup
               </span>
               <span className="terminal-text">
-                {second.pokemon.name}: <strong className="sys-prompt">{outcome.secondMultiplier}×</strong> best type
-                matchup
+                {second.pokemon.name}:{" "}
+                <strong className="sys-prompt">
+                  {outcome.secondMultiplier}×
+                </strong>{" "}
+                best type matchup
               </span>
             </div>
           </>

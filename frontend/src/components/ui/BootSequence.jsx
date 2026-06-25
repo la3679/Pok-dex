@@ -3,85 +3,97 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export function BootSequence({ onComplete }) {
   const [stage, setStage] = useState(0);
+  const [shouldBoot, setShouldBoot] = useState(false);
 
   useEffect(() => {
+    // Only boot once per session
+    const hasBooted = sessionStorage.getItem('pokedexBooted');
+    if (hasBooted) {
+      if (onComplete) onComplete();
+      return;
+    }
+    
+    setShouldBoot(true);
+    
     const sequence = async () => {
-      // 0: Initial black screen
-      await new Promise(r => setTimeout(r, 400));
-      setStage(1); // 1: Logo and text appears
-      await new Promise(r => setTimeout(r, 1200));
-      setStage(2); // 2: Loading bar fills
-      await new Promise(r => setTimeout(r, 800));
+      // 0: Initial black screen (fast)
+      await new Promise(r => setTimeout(r, 100));
+      setStage(1); // 1: Power on & Radar
+      await new Promise(r => setTimeout(r, 700));
+      setStage(2); // 2: Loading Data & Progress
+      await new Promise(r => setTimeout(r, 600));
       setStage(3); // 3: Fade out
-      await new Promise(r => setTimeout(r, 500));
-      onComplete();
+      
+      sessionStorage.setItem('pokedexBooted', 'true');
+      if (onComplete) onComplete();
     };
+    
     sequence();
   }, [onComplete]);
+
+  if (!shouldBoot) return null;
 
   return (
     <AnimatePresence>
       {stage < 3 && (
         <motion.div
-          className="boot-sequence"
+          className="boot-screen"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
           style={{
             position: 'fixed',
             inset: 0,
             zIndex: 9999,
-            backgroundColor: '#101315',
+            backgroundColor: '#0a0a0a',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#ee4945'
+            overflow: 'hidden'
           }}
         >
+          {/* Radar background */}
+          <div className="boot-screen__radar" />
+          
           {stage >= 1 && (
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', bounce: 0.5 }}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+              transition={{ type: 'spring', bounce: 0.3 }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2 }}
             >
-              <div style={{
-                width: '6rem',
-                height: '6rem',
-                borderRadius: '50%',
-                background: 'linear-gradient(#ee4945 0 45%, #f1f5f4 46% 53%, #202628 54%)',
-                boxShadow: '0 0 0 4px #191d20, 0 0 30px rgba(238, 73, 69, 0.4)',
-                marginBottom: '2rem',
-                position: 'relative'
-              }}>
-                <span style={{
-                  position: 'absolute',
-                  inset: '1.5rem',
-                  borderRadius: '50%',
-                  background: '#f1f5f4',
-                  boxShadow: '0 0 0 0.3rem #202628'
-                }} />
-              </div>
-              <h1 style={{ fontFamily: 'DM Mono, monospace', fontSize: '1.2rem', letterSpacing: '0.2em', color: '#f1f5f4', margin: 0 }}>
-                POKÉDEX OS
+              <div className="boot-screen__orb" />
+              
+              <h1 style={{ fontFamily: 'DM Mono, monospace', fontSize: '1.4rem', letterSpacing: '0.2em', color: '#f0f0f0', margin: 0 }}>
+                SYSTEM ONLINE
               </h1>
-              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.7rem', color: '#9ca8a8', marginTop: '0.5rem' }}>
-                SYSTEM INITIALIZATION
+              
+              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.75rem', color: '#88929b', marginTop: '0.5rem' }}>
+                {stage === 1 ? 'SCANNING ENVIRONMENT...' : 'LOADING FIELD DATA...'}
               </p>
               
               {stage >= 2 && (
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: '12rem' }}
-                  transition={{ duration: 0.6, ease: "linear" }}
-                  style={{
-                    height: '2px',
-                    backgroundColor: '#b7d96c',
-                    marginTop: '2rem',
-                    boxShadow: '0 0 10px #b7d96c'
-                  }}
-                />
+                <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: '14rem' }}
+                    transition={{ duration: 0.5, ease: "linear" }}
+                    style={{
+                      height: '3px',
+                      backgroundColor: '#4ade80',
+                      boxShadow: '0 0 10px #4ade80'
+                    }}
+                  />
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.7rem', color: '#4ade80', marginTop: '0.5rem', fontWeight: 'bold' }}
+                  >
+                    DEX READY
+                  </motion.p>
+                </div>
               )}
             </motion.div>
           )}

@@ -127,7 +127,9 @@ export default function QuizPage() {
             {question.target.image_url && (
               <img src={question.target.image_url} alt="" />
             )}
-            <strong className="sys-prompt">{question.target.pokemon.name}</strong>
+            <strong className="sys-prompt">
+              {question.target.pokemon.name}
+            </strong>
           </div>
         )}
         {question.mode === "higher-stat" && (
@@ -136,14 +138,18 @@ export default function QuizPage() {
               {question.target.image_url && (
                 <img src={question.target.image_url} alt="" />
               )}
-              <strong className="sys-prompt">{question.target.pokemon.name}</strong>
+              <strong className="sys-prompt">
+                {question.target.pokemon.name}
+              </strong>
             </article>
             <span className="sys-prompt">VS</span>
             <article className="terminal-panel">
               {question.challenger.image_url && (
                 <img src={question.challenger.image_url} alt="" />
               )}
-              <strong className="sys-prompt">{question.challenger.pokemon.name}</strong>
+              <strong className="sys-prompt">
+                {question.challenger.pokemon.name}
+              </strong>
             </article>
           </div>
         )}
