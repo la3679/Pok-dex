@@ -13,6 +13,9 @@ venv/
 .vscode/
 .docker-codex/
 
+# Local Claude Code tooling (e.g. preview launch config)
+.claude/
+
 # Local datasets and environment-specific credentials
 data/
 .env
