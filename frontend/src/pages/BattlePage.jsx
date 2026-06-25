@@ -112,11 +112,12 @@ export default function BattlePage() {
   if (!battle) {
     return (
       <motion.div
-        className="battle-page"
+        className="pokedex-screen battle-page"
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
+        <div className="boot-screen__scanlines" />
         <PageHeader
           eyebrow="Combat Simulator"
           title="Select Squadron"
@@ -129,7 +130,7 @@ export default function BattlePage() {
         />
 
         <section className="battle-setup">
-          <div className="battle-setup__main">
+          <div className="battle-setup__main terminal-panel">
             <PokemonSearchPicker
               selectedIds={selected.map((entry) => String(entry._id))}
               onSelect={add}
@@ -176,7 +177,7 @@ export default function BattlePage() {
               </AnimatePresence>
             </div>
           </div>
-          <aside className="battle-setup__config">
+          <aside className="battle-setup__config terminal-panel">
             <h2>
               <span className="sys-prompt">_</span>CPU parameters
             </h2>
@@ -243,11 +244,12 @@ export default function BattlePage() {
 
   return (
     <motion.div
-      className="battle-page"
+      className="pokedex-screen battle-page"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
     >
+      <div className="boot-screen__scanlines" />
       <PageHeader
         eyebrow={`Turn ${String(battle.turn).padStart(3, "0")}`}
         title="Active Simulation"
@@ -260,7 +262,7 @@ export default function BattlePage() {
       />
       <BattleArena battle={battle} />
 
-      <section className="battle-console">
+      <section className="battle-console terminal-panel">
         <div className="battle-console__log" role="log" aria-live="polite">
           {battle.log.slice(-4).map((line, index) => (
             <motion.p
