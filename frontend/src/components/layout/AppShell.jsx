@@ -38,11 +38,11 @@ export function AppShell({ children }) {
       <BootSequence />
       <div className="pokedex-device">
         <div className="pokedex-device__lights">
-          <div className="pokedex-device__main-light" aria-hidden="true" />
-          <div className="pokedex-device__status-lights" aria-hidden="true">
-            <span className="light-red" />
-            <span className="light-yellow" />
-            <span className="light-green" />
+          <NavLink to="/" end className="pokedex-device__main-light" aria-label="Go to Home" />
+          <div className="pokedex-device__status-lights">
+            <NavLink to="/pokedex" className="device-light light-red" aria-label="Go to Pokédex" />
+            <NavLink to="/battle" className="device-light light-yellow" aria-label="Go to Battle" />
+            <NavLink to="/map" className="device-light light-green" aria-label="Go to Sightings Map" />
           </div>
           <div className="pokedex-device__readout">
             <span className="pokedex-device__module-tag">MODULE</span>
