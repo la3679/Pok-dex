@@ -13,6 +13,10 @@ import TypeChartPage from './pages/TypeChartPage';
 import BattlePage from './pages/BattlePage';
 import BattleHistoryPage from './pages/BattleHistoryPage';
 import SightingsMapPage from './pages/SightingsMapPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import AchievementsPage from './pages/AchievementsPage';
+import QuizPage from './pages/QuizPage';
+import WhoWouldWinPage from './pages/WhoWouldWinPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -31,7 +35,10 @@ function AnimatedRoutes() {
     <Route path="/team-builder" element={<TeamBuilderPage />} />
     <Route path="/type-chart" element={<TypeChartPage />} />
     <Route path="/battle/history" element={<BattleHistoryPage />} />
-    <Route path="/analytics" element={<FeaturePlaceholder feature="analytics" />} />
+    <Route path="/analytics" element={<AnalyticsPage />} />
+    <Route path="/achievements" element={<AchievementsPage />} />
+    <Route path="/quiz" element={<QuizPage />} />
+    <Route path="/who-would-win" element={<WhoWouldWinPage />} />
     <Route path="/about" element={<FeaturePlaceholder feature="about" />} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes></motion.div></AnimatePresence></AppShell>;

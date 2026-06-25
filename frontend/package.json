@@ -16,8 +16,8 @@
         "vitest": "^3.0.5"
     },
     "scripts": {
-        "dev": "vite",
-        "start": "vite",
+        "dev": "vite --configLoader runner",
+        "start": "vite --configLoader runner",
         "build": "vite build",
         "preview": "vite preview",
         "test": "vitest run"

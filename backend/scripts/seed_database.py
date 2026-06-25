@@ -2,7 +2,7 @@ import argparse
 import json
 
 from scripts.fetch_pokemon_data import PokeApiClient, create_indexes, sync_forms_from_pokemon, sync_resource
-from scripts.import_existing_datasets import import_comments, import_sightings
+from scripts.import_existing_datasets import import_comments, import_sightings, import_stats
 from scripts.runtime import database
 
 
@@ -28,6 +28,7 @@ def main():
     result['forms'] = sync_forms_from_pokemon(db)
     if not args.skip_legacy:
         result['legacy'] = {
+            'stats': import_stats(db),
             'sightings': import_sightings(db, resume=not args.restart),
             'comments': import_comments(db),
         }

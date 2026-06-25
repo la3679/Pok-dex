@@ -227,19 +227,26 @@ class PokemonService:
         return self.repository.analytics_summary()
 
     def analytics_types(self):
-        return list(self.repository.db.pokemon.aggregate([
-            {'$unwind': '$types'},
-            {'$group': {'_id': '$types', 'count': {'$sum': 1}}},
-            {'$project': {'_id': 0, 'type': '$_id', 'count': 1}},
-            {'$sort': {'count': -1, 'type': 1}},
-        ]))
+        return self.repository.analytics_types()
+
+    def analytics_generations(self):
+        return self.repository.analytics_generations()
+
+    def analytics_type_stats(self):
+        return self.repository.analytics_type_stats()
 
     def analytics_top_stats(self, args):
         stat = (args.get('stat') or 'attack').strip().lower()
         if stat not in {'hp', 'attack', 'defense', 'special-attack', 'special-defense', 'speed'}:
             raise ValidationError('stat is not supported.')
         limit = integer(args.get('limit'), 'limit', default=10, minimum=1, maximum=50)
-        return list(self.repository.db.pokemon.find({}, {'_id': 0, 'name': 1, 'pokemon_id': 1, f'stats.{stat}': 1}).sort(f'stats.{stat}', -1).limit(limit))
+        return self.repository.analytics_top_stats(stat, limit)
+
+    def analytics_extremes(self):
+        return self.repository.analytics_extremes()
+
+    def analytics_sightings(self):
+        return self.repository.analytics_sightings()
 
     def _require_pokemon(self, pokemon_id):
         pokemon_id = integer(pokemon_id, 'pokemonId', minimum=1)

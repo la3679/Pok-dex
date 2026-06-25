@@ -15,6 +15,7 @@ def create_app():
     from routes.game import game_bp
     from routes.health import health_bp
     from routes.images import images_bp
+    from routes.docs import docs_bp
     from routes.pokemon import pokemon_bp
     from routes.errors import api_error
 
@@ -23,6 +24,7 @@ def create_app():
     app = Flask(__name__)
     CORS(app, resources={r'/api/*': {'origins': Config.FRONTEND_ORIGINS}})
     app.register_blueprint(health_bp, url_prefix='/api')
+    app.register_blueprint(docs_bp, url_prefix='/api')
     app.register_blueprint(pokemon_bp, url_prefix='/api')
     app.register_blueprint(images_bp)
     app.register_blueprint(game_bp)

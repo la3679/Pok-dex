@@ -16,6 +16,12 @@ describe('battle engine', () => {
     expect(combatant.hp).toBe(combatant.maxHp);
   });
 
+  it('uses the moves array from the API response wrapper', () => {
+    const response = { pokemon_id: '1', moves: [{ name: 'ember', type: 'fire', power: 40, accuracy: 100, damage_class: 'special' }] };
+    const combatant = prepareCombatant(entry(1, 'Flare', 'fire'), response.moves);
+    expect(combatant.moves[0].name).toBe('ember');
+  });
+
   it('resolves a turn without negative health and detects a winner', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.1);
     const user = prepareCombatant(entry(1, 'Flare', 'fire', { attack: 200, speed: 100 }), [{ name: 'inferno', type: 'fire', power: 250, accuracy: 100, damage_class: 'physical' }]);

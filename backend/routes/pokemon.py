@@ -122,3 +122,35 @@ def get_analytics_top_stats():
         return jsonify({'pokemon': service.analytics_top_stats(request.args)}), 200
     except Exception as error:
         return handle_error(error, 'analytics_top_stats_failed')
+
+
+@pokemon_bp.route('/analytics/generations', methods=['GET'])
+def get_analytics_generations():
+    try:
+        return jsonify({'generations': service.analytics_generations()}), 200
+    except Exception as error:
+        return handle_error(error, 'analytics_generations_failed')
+
+
+@pokemon_bp.route('/analytics/type-stats', methods=['GET'])
+def get_analytics_type_stats():
+    try:
+        return jsonify({'types': service.analytics_type_stats()}), 200
+    except Exception as error:
+        return handle_error(error, 'analytics_type_stats_failed')
+
+
+@pokemon_bp.route('/analytics/extremes', methods=['GET'])
+def get_analytics_extremes():
+    try:
+        return jsonify(service.analytics_extremes()), 200
+    except Exception as error:
+        return handle_error(error, 'analytics_extremes_failed')
+
+
+@pokemon_bp.route('/analytics/sightings', methods=['GET'])
+def get_analytics_sightings():
+    try:
+        return jsonify({'pokemon': service.analytics_sightings()}), 200
+    except Exception as error:
+        return handle_error(error, 'analytics_sightings_failed')

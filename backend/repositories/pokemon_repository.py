@@ -82,4 +82,110 @@ class PokemonRepository:
             'types': self.db.pokemon_types.count_documents({}),
             'sightings': self.db.pokemon_sightings.count_documents({}),
             'comments': self.db.pokemon_comments.count_documents({}),
+            'legendary': self.db.pokemon_species.count_documents({'is_legendary': True}),
+            'mythical': self.db.pokemon_species.count_documents({'is_mythical': True}),
+        }
+
+    def analytics_types(self):
+        return list(self.db.pokemon.aggregate([
+            {'$unwind': '$types'},
+            {'$group': {'_id': '$types', 'count': {'$sum': 1}}},
+            {'$project': {'_id': 0, 'type': '$_id', 'count': 1}},
+            {'$sort': {'count': -1, 'type': 1}},
+        ]))
+
+    def analytics_generations(self):
+        return list(self.db.pokemon_species.aggregate([
+            {'$match': {'generation': {'$type': 'string'}}},
+            {'$group': {
+                '_id': '$generation',
+                'count': {'$sum': 1},
+                'legendary': {'$sum': {'$cond': ['$is_legendary', 1, 0]}},
+                'mythical': {'$sum': {'$cond': ['$is_mythical', 1, 0]}},
+            }},
+            {'$project': {'_id': 0, 'generation': '$_id', 'count': 1, 'legendary': 1, 'mythical': 1}},
+            {'$sort': {'generation': 1}},
+        ]))
+
+    def analytics_type_stats(self):
+        return list(self.db.pokemon.aggregate([
+            {'$unwind': '$types'},
+            {'$group': {
+                '_id': '$types',
+                'count': {'$sum': 1},
+                'hp': {'$avg': '$stats.hp'},
+                'attack': {'$avg': '$stats.attack'},
+                'defense': {'$avg': '$stats.defense'},
+                'special_attack': {'$avg': '$stats.special-attack'},
+                'special_defense': {'$avg': '$stats.special-defense'},
+                'speed': {'$avg': '$stats.speed'},
+            }},
+            {'$project': {
+                '_id': 0,
+                'type': '$_id',
+                'count': 1,
+                'averages': {
+                    'hp': {'$round': ['$hp', 1]},
+                    'attack': {'$round': ['$attack', 1]},
+                    'defense': {'$round': ['$defense', 1]},
+                    'special_attack': {'$round': ['$special_attack', 1]},
+                    'special_defense': {'$round': ['$special_defense', 1]},
+                    'speed': {'$round': ['$speed', 1]},
+                },
+            }},
+            {'$sort': {'type': 1}},
+        ]))
+
+    def analytics_top_stats(self, stat, limit):
+        rows = self.db.pokemon.find(
+            {},
+            {'_id': 0, 'pokemon_id': 1, 'name': 1, 'types': 1, f'stats.{stat}': 1},
+        ).sort(f'stats.{stat}', -1).limit(limit)
+        return [
+            {
+                'pokemon_id': row['pokemon_id'],
+                'name': row['name'],
+                'types': row.get('types', []),
+                'value': row.get('stats', {}).get(stat, 0),
+            }
+            for row in rows
+        ]
+
+    def analytics_extremes(self, limit=5):
+        projection = {'_id': 0, 'pokemon_id': 1, 'name': 1, 'types': 1, 'height_decimeters': 1, 'weight_hectograms': 1}
+        tallest = list(self.db.pokemon.find({}, projection).sort('height_decimeters', -1).limit(limit))
+        heaviest = list(self.db.pokemon.find({}, projection).sort('weight_hectograms', -1).limit(limit))
+        return {
+            'tallest': [self._physical_record(row, 'height_decimeters') for row in tallest],
+            'heaviest': [self._physical_record(row, 'weight_hectograms') for row in heaviest],
+        }
+
+    def analytics_sightings(self, limit=8):
+        return list(self.db.pokemon_sightings.aggregate([
+            {'$group': {'_id': '$pokemon_id', 'count': {'$sum': 1}}},
+            {'$sort': {'count': -1, '_id': 1}},
+            {'$limit': limit},
+            {'$lookup': {
+                'from': 'pokemon',
+                'localField': '_id',
+                'foreignField': 'pokemon_id',
+                'as': 'pokemon',
+            }},
+            {'$unwind': {'path': '$pokemon', 'preserveNullAndEmptyArrays': True}},
+            {'$project': {
+                '_id': 0,
+                'pokemon_id': '$_id',
+                'count': 1,
+                'name': {'$ifNull': ['$pokemon.name', 'Unknown Pokémon']},
+                'types': {'$ifNull': ['$pokemon.types', []]},
+            }},
+        ]))
+
+    @staticmethod
+    def _physical_record(row, field):
+        return {
+            'pokemon_id': row['pokemon_id'],
+            'name': row['name'],
+            'types': row.get('types', []),
+            'value': (row.get(field) or 0) / 10,
         }

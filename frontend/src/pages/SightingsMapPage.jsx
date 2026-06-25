@@ -6,16 +6,19 @@ import apiBaseUrl from '../api';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorBanner, PokeballLoader } from '../components/ui/States';
 import { TypeBadge } from '../components/ui/TypeBadge';
-import { clusterSightings, loadGoogleMaps } from '../lib/map';
+import { clusterSightings, createHeatmapOverlay, loadGoogleMaps } from '../lib/map';
+import { useProfile } from '../context/ProfileContext';
 
 const mapsKey = import.meta.env.REACT_APP_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const formatDate = (value) => value ? new Date(value).toLocaleDateString() : 'Unknown date';
 
 export default function SightingsMapPage() {
   const { pokemonId } = useParams();
-  const mapNode = useRef(null); const mapInstance = useRef(null); const markers = useRef([]); const heatmap = useRef(null); const radiusCircle = useRef(null);
+  const { recordMapVisit } = useProfile();
+  const registeredVisit = useRef(false);
+  const mapNode = useRef(null); const mapInstance = useRef(null); const mapsApi = useRef(null); const markers = useRef([]); const heatmap = useRef(null); const radiusCircle = useRef(null);
   const [dateFrom, setDateFrom] = useState(''); const [dateTo, setDateTo] = useState(''); const [radius, setRadius] = useState(25);
-  const [position, setPosition] = useState(null); const [radiusEnabled, setRadiusEnabled] = useState(false); const [mode, setMode] = useState('clusters'); const [selected, setSelected] = useState(null); const [fullScreen, setFullScreen] = useState(false); const [mapError, setMapError] = useState('');
+  const [position, setPosition] = useState(null); const [radiusEnabled, setRadiusEnabled] = useState(false); const [mode, setMode] = useState('clusters'); const [selected, setSelected] = useState(null); const [fullScreen, setFullScreen] = useState(false); const [mapError, setMapError] = useState(''); const [mapReady, setMapReady] = useState(false);
   const pokemon = useQuery({ queryKey: ['map-pokemon', pokemonId], queryFn: async () => (await axios.get(`${apiBaseUrl}/pokemon/${pokemonId}`)).data, enabled: Boolean(pokemonId) });
   const params = { pokemonId: pokemonId || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined, latitude: radiusEnabled ? position?.lat : undefined, longitude: radiusEnabled ? position?.lng : undefined, radius: radiusEnabled ? radius : undefined, limit: 1000 };
   const sightings = useQuery({ queryKey: ['map-sightings', params], queryFn: async () => (await axios.get(`${apiBaseUrl}/sightings`, { params })).data });
@@ -23,31 +26,44 @@ export default function SightingsMapPage() {
   const clusters = useMemo(() => clusterSightings(points), [points]);
   const hotspot = clusters.slice().sort((a, b) => b.count - a.count)[0];
   const title = pokemonId ? `${pokemon.data?.pokemon?.name || 'Pokémon'} sightings` : 'Sightings map';
+  useEffect(() => {
+    if (!registeredVisit.current) { registeredVisit.current = true; recordMapVisit(); }
+  }, [recordMapVisit]);
   const requestLocation = () => {
     if (!navigator.geolocation) { setMapError('This browser does not support location access.'); return; }
     navigator.geolocation.getCurrentPosition(({ coords }) => { setPosition({ lat: coords.latitude, lng: coords.longitude }); setRadiusEnabled(true); setMapError(''); }, () => setMapError('Location access was unavailable. You can continue exploring the global dataset.'));
   };
   useEffect(() => {
     let cancelled = false;
-    loadGoogleMaps(mapsKey).then((google) => {
+    loadGoogleMaps(mapsKey).then(async (google) => {
+      await new Promise((resolve) => window.requestAnimationFrame(resolve));
       if (cancelled || !mapNode.current) return;
+      mapsApi.current = google;
       if (!mapInstance.current) mapInstance.current = new google.maps.Map(mapNode.current, { center: position || { lat: 20, lng: 0 }, zoom: position ? 7 : 2, mapTypeControl: false, streetViewControl: false, fullscreenControl: false });
+      setMapReady(true);
     }).catch((error) => !cancelled && setMapError(error.message));
     return () => { cancelled = true; };
   }, []);
   useEffect(() => {
-    const google = window.google; const map = mapInstance.current;
-    if (!google?.maps || !map || !points.length) return;
-    markers.current.forEach((marker) => marker.setMap(null)); markers.current = [];
-    if (heatmap.current) { heatmap.current.setMap(null); heatmap.current = null; }
-    if (radiusCircle.current) { radiusCircle.current.setMap(null); radiusCircle.current = null; }
-    const center = position || { lat: points[0].location.coordinates[1], lng: points[0].location.coordinates[0] };
-    map.setCenter(center); if (position) map.setZoom(7);
-    if (radiusEnabled && position) radiusCircle.current = new google.maps.Circle({ map, center: position, radius: radius * 1000, strokeColor: '#ee4945', strokeWeight: 2, fillColor: '#ee4945', fillOpacity: .08 });
-    if (mode === 'heatmap' && google.maps.visualization) { heatmap.current = new google.maps.visualization.HeatmapLayer({ data: points.map((point) => new google.maps.LatLng(point.location.coordinates[1], point.location.coordinates[0])), radius: 24, opacity: .65 }); heatmap.current.setMap(map); return; }
-    const display = mode === 'clusters' ? clusters : points.map((point) => ({ lat: point.location.coordinates[1], lng: point.location.coordinates[0], count: 1, sightings: [point] }));
-    display.forEach((group) => { const marker = new google.maps.Marker({ map, position: { lat: group.lat, lng: group.lng }, label: group.count > 1 ? String(group.count) : '', title: group.count > 1 ? `${group.count} sightings` : group.sightings[0].pokemon_name, icon: group.count > 1 ? undefined : { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: '#ee4945', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 } }); marker.addListener('click', () => { const item = group.sightings[0]; setSelected(item); map.panTo({ lat: group.lat, lng: group.lng }); map.setZoom(group.count > 1 ? 6 : 12); }); markers.current.push(marker); });
-  }, [points, clusters, mode, position, radius, radiusEnabled]);
+    const google = mapsApi.current; const map = mapInstance.current;
+    if (!mapReady || !google?.maps || !map || !points.length) return;
+    try {
+      markers.current.forEach((marker) => marker.setMap(null)); markers.current = [];
+      if (heatmap.current) { heatmap.current.setMap(null); heatmap.current = null; }
+      if (radiusCircle.current) { radiusCircle.current.setMap(null); radiusCircle.current = null; }
+      const center = position || { lat: points[0].location.coordinates[1], lng: points[0].location.coordinates[0] };
+      map.setCenter(center); if (position) map.setZoom(7);
+      if (radiusEnabled && position) radiusCircle.current = new google.maps.Circle({ map, center: position, radius: radius * 1000, strokeColor: '#ee4945', strokeWeight: 2, fillColor: '#ee4945', fillOpacity: .08 });
+      if (mode === 'heatmap') {
+        heatmap.current = createHeatmapOverlay(google, map, points);
+        setMapError((current) => current.startsWith('Unable to render') ? '' : current);
+        return;
+      }
+      const display = mode === 'clusters' ? clusters : points.map((point) => ({ lat: point.location.coordinates[1], lng: point.location.coordinates[0], count: 1, sightings: [point] }));
+      display.forEach((group) => { const marker = new google.maps.Marker({ map, position: { lat: group.lat, lng: group.lng }, label: group.count > 1 ? String(group.count) : '', title: group.count > 1 ? `${group.count} sightings` : group.sightings[0].pokemon_name, icon: group.count > 1 ? undefined : { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: '#ee4945', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 } }); marker.addListener('click', () => { const item = group.sightings[0]; setSelected(item); map.panTo({ lat: group.lat, lng: group.lng }); map.setZoom(group.count > 1 ? 6 : 12); }); markers.current.push(marker); });
+      setMapError((current) => current.startsWith('Unable to render') ? '' : current);
+    } catch (error) { setMapError(`Unable to render ${mode} mode. ${error.message || 'Try another map mode.'}`); }
+  }, [points, clusters, mapReady, mode, position, radius, radiusEnabled]);
   const focus = (item) => { setSelected(item); const [lng, lat] = item.location.coordinates; mapInstance.current?.panTo({ lat, lng }); mapInstance.current?.setZoom(12); };
   if (sightings.isLoading) return <PokeballLoader label="Scanning sightings data…" />;
   if (sightings.isError) return <ErrorBanner title="Sightings could not load" message={sightings.error?.response?.data?.error?.message || 'Check that the local API is running.'} onRetry={sightings.refetch} />;

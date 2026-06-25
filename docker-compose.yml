@@ -2,12 +2,121 @@ services:
   mongo:
     image: mongo:8
     container_name: pokedex-mongo
+    restart: unless-stopped
     ports:
       - "27018:27017"
     volumes:
       - mongo-data:/data/db
       - ./data:/seed/data:ro
       - "./frontend/archive (1):/seed/stats:ro"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: pokedex-backend
+    restart: unless-stopped
+    environment:
+      MONGO_URI: mongodb://mongo:27017/PokeMap
+      MONGO_DATABASE: PokeMap
+      FLASK_ENV: development
+      FLASK_DEBUG: "true"
+      FRONTEND_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: pokedex-frontend
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_BASE_URL: http://localhost:5000
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    depends_on:
+      - backend
+
+  seed:
+    build:
+      context: ./backend
+    profiles: ["tools"]
+    environment:
+      MONGO_URI: mongodb://mongo:27017/PokeMap
+      MONGO_DATABASE: PokeMap
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: ["python", "-m", "scripts.seed_database", "--skip-legacy"]
+
+  validate:
+    build:
+      context: ./backend
+    profiles: ["tools"]
+    environment:
+      MONGO_URI: mongodb://mongo:27017/PokeMap
+      MONGO_DATABASE: PokeMap
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: ["python", "-m", "scripts.validate_database"]
+
+  backend-test:
+    build:
+      context: ./backend
+    profiles: ["tools"]
+    environment:
+      MONGO_URI: mongodb://mongo:27017/PokeMap
+      MONGO_DATABASE: PokeMap
+      FLASK_ENV: testing
+      FLASK_DEBUG: "false"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: ["python", "-m", "pytest", "tests", "-q"]
+
+  frontend-test:
+    build:
+      context: ./frontend
+    profiles: ["tools"]
+    environment:
+      REACT_APP_API_BASE_URL: http://localhost:5000
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    command: ["npm", "run", "test"]
+
+  frontend-build:
+    build:
+      context: ./frontend
+    profiles: ["tools"]
+    environment:
+      REACT_APP_API_BASE_URL: http://localhost:5000
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    command: ["npm", "run", "build"]
 
 volumes:
   mongo-data:
+  frontend-node-modules:

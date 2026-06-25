@@ -1,4 +1,4 @@
-# Pokédex Platform Roadmap
+# Pokédex Atlas Roadmap
 
 ## Delivery order
 
@@ -13,28 +13,37 @@
 | 6 | Compare, type chart, team builder — complete | Portfolio | High | 2, 4, 5 |
 | 7 | Classic-inspired battle redesign — complete | Portfolio | High | 2, 3, 4 |
 | 8 | Sightings-map redesign — complete | Portfolio | High | 3, 4 |
-| 9 | Analytics dashboard | Portfolio | Medium | 2, 3, 4 |
-| 10 | Quiz, achievements, exports | Polish | Medium | 5–7 |
-| 11 | Tests, CI, and quality gates | MVP | High | 1–4 |
-| 12 | Docker developer experience | MVP | Medium | 1, 2, 11 |
-| 13 | OpenAPI documentation | Portfolio | Medium | 3 |
-| 14 | README and portfolio polish | Portfolio | Medium | 0–13 |
+| 9 | Analytics dashboard — complete | Portfolio | Medium | 2, 3, 4 |
+| 10 | Quiz, achievements, exports — complete | Polish | Medium | 5–7 |
+| 11 | Tests, CI, and quality gates — complete | MVP | High | 1–4 |
+| 12 | Docker developer experience — complete | MVP | Medium | 1, 2, 11 |
+| 13 | OpenAPI documentation — complete | Portfolio | Medium | 3 |
+| 14 | README and portfolio polish — complete | Portfolio | Medium | 0–13 |
 
-## Current audit
+## Completed scope
 
-- The React app currently exposes a Pokédex, Pokémon-specific sightings map, comments, and a basic team battle route.
-- Flask uses three Blueprint modules that directly create MongoDB clients and read the legacy `MergedPokemonSightings` collection. Images are served from GridFS.
-- The legacy import creates 144 merged Pokémon records from the sightings dataset, while the available stats dataset contains more entries. The target data model removes that artificial browsing limit.
-- The project has no automated test suite, CI workflow, app factory, shared API error contract, or committed architecture documentation.
-- The frontend now uses Vite with React and keeps the documented `REACT_APP_*` environment variable names compatible during the migration.
-- Existing local setup files contained configuration that must not be tracked. Phase 1 removes credentials and hardcoded browser API configuration from source control.
+- Secure local configuration uses ignored `.env.local` files and safe `.env.example` placeholders.
+- The backend exposes modular Flask routes, services, repositories, serializers, validation helpers, ingestion scripts, health checks, analytics endpoints, and OpenAPI docs.
+- The database can be seeded from PokéAPI and approved local datasets, then validated for collection counts, duplicates, malformed sightings, and indexes.
+- The React/Vite frontend includes the redesigned Pokédex shell, catalog, detail pages, favorites, recent views, profile, compare, type chart, team builder, battle, map, analytics, achievements, quiz, matchup, and export features.
+- The sightings map includes marker, cluster, custom heatmap, radius, date, current-location, sidebar, and hotspot experiences without using the removed Google Heatmap Layer.
+- Dockerfiles, Docker Compose, PowerShell helpers, pytest, Vitest, frontend build checks, GitHub Actions, secret scanning, Swagger UI, and portfolio docs are in place.
 
-## MVP definition
+## Final review checklist
 
-The MVP is a secure local stack, repeatable all-Pokémon seed pipeline, validated Flask API, Vite Pokédex interface, basic detail pages, and automated quality checks. Strategy, battle depth, map exploration, and analytics follow once that foundation is stable.
+- [ ] Run backend tests.
+- [ ] Run frontend tests.
+- [ ] Run frontend build.
+- [ ] Run secret scan.
+- [ ] Restart backend and frontend from a clean terminal.
+- [ ] Verify `/`, `/pokedex`, `/pokemon/25`, `/map`, `/battle`, `/analytics`, `/quiz`, and `/api/docs`.
+- [ ] Capture screenshots into `docs/screenshots/`.
+- [ ] Split the mixed working tree into small Conventional Commits.
+- [ ] Open a pull request with setup, test, and known-limitation notes.
 
-## Next milestone
+## Future polish ideas
 
-Phase 8 is complete: the sightings explorer has a general map, Pokémon-specific route, clusters, heatmap mode, date/radius filters, location controls, hotspot summary, sidebar focus, and graceful map-key fallback.
-
-The next milestone is Phase 9: analytics dashboard.
+- Add authentication and cloud-synced profiles if the project moves beyond local-first portfolio scope.
+- Add hosted deployment configuration after choosing the target platform and secret-management model.
+- Add richer charting if design needs outgrow the current CSS-first dashboard.
+- Add a selected project license before public distribution.

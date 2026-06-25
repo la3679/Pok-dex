@@ -11,6 +11,7 @@ venv/
 
 # Ignore the vscode directory
 .vscode/
+.docker-codex/
 
 # Local datasets and environment-specific credentials
 data/

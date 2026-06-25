@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { achievementSummary } from '../lib/achievements';
 
 const STORAGE_KEY = 'pokedex-atlas-profile-v1';
 const MAX_RECENT = 12;
@@ -10,12 +11,14 @@ const defaults = {
   battles: { played: 0, wins: 0, losses: 0, draws: 0, mostUsedPokemon: {} },
   savedTeams: [],
   battleHistory: [],
+  activity: { comparedPokemonIds: [], legendaryPokemonIds: [], mapVisits: 0 },
+  lastComparison: [],
 };
 
 function readProfile() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return stored ? { ...defaults, ...stored, preferences: { ...defaults.preferences, ...stored.preferences }, battles: { ...defaults.battles, ...stored.battles } } : defaults;
+    return stored ? { ...defaults, ...stored, preferences: { ...defaults.preferences, ...stored.preferences }, battles: { ...defaults.battles, ...stored.battles }, activity: { ...defaults.activity, ...stored.activity } } : defaults;
   } catch {
     return defaults;
   }
@@ -52,6 +55,7 @@ export function ProfileProvider({ children }) {
     battles: profile.battles,
     savedTeams: profile.savedTeams || [],
     battleHistory: profile.battleHistory || [],
+    achievements: achievementSummary(profile),
     setPreference(key, value) { setProfile((current) => ({ ...current, preferences: { ...current.preferences, [key]: value } })); },
     isFavorite(item) { const { id } = normalizePokemon(item); return profile.favorites.some((favorite) => favorite.id === id); },
     toggleFavorite(item) {
@@ -62,7 +66,12 @@ export function ProfileProvider({ children }) {
     addRecentlyViewed(item) {
       const viewed = normalizePokemon(item);
       if (!viewed.id) return;
-      setProfile((current) => ({ ...current, recentlyViewed: [{ ...viewed, viewedAt: new Date().toISOString() }, ...current.recentlyViewed.filter((entry) => entry.id !== viewed.id)].slice(0, MAX_RECENT) }));
+      const isRare = Boolean(item?.species?.is_legendary || item?.species?.is_mythical);
+      setProfile((current) => ({
+        ...current,
+        recentlyViewed: [{ ...viewed, viewedAt: new Date().toISOString() }, ...current.recentlyViewed.filter((entry) => entry.id !== viewed.id)].slice(0, MAX_RECENT),
+        activity: isRare ? { ...current.activity, legendaryPokemonIds: [...new Set([...(current.activity?.legendaryPokemonIds || []), viewed.id])] } : current.activity,
+      }));
     },
     recordBattle(result, team = [], log = []) {
       const winner = result === 'User' ? 'wins' : result === 'CPU' ? 'losses' : 'draws';
@@ -78,6 +87,16 @@ export function ProfileProvider({ children }) {
       setProfile((current) => ({ ...current, savedTeams: [team, ...(current.savedTeams || [])].slice(0, 12) }));
     },
     removeSavedTeam(teamId) { setProfile((current) => ({ ...current, savedTeams: (current.savedTeams || []).filter((team) => team.id !== teamId) })); },
+    recordComparison(entries) {
+      const members = entries.map(normalizeTeamPokemon).filter((entry) => entry.id);
+      if (members.length < 2) return;
+      setProfile((current) => ({
+        ...current,
+        lastComparison: members,
+        activity: { ...current.activity, comparedPokemonIds: [...new Set([...(current.activity?.comparedPokemonIds || []), ...members.map((entry) => entry.id)])] },
+      }));
+    },
+    recordMapVisit() { setProfile((current) => ({ ...current, activity: { ...current.activity, mapVisits: (current.activity?.mapVisits || 0) + 1 } })); },
     clearBattleHistory() { setProfile((current) => ({ ...current, battleHistory: [] })); },
     clearLocalData() { setProfile(defaults); },
   }), [profile]);

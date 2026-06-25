@@ -34,7 +34,7 @@ export default function BattlePage() {
       const cpuEntries = pool.data.filter((entry) => !selected.some((member) => member._id === entry._id)).sort(() => Math.random() - 0.5).slice(0, 3);
       const allEntries = [...selected, ...cpuEntries];
       const moveResponses = await Promise.all(allEntries.map((entry) => axios.get(`${apiBaseUrl}/pokemon/${entry._id}/moves`, { params: { limit: 16 } })));
-      const combatants = allEntries.map((entry, index) => prepareCombatant(entry, moveResponses[index].data));
+      const combatants = allEntries.map((entry, index) => prepareCombatant(entry, moveResponses[index].data.moves || []));
       setBattle(beginBattle(combatants.slice(0, 3), combatants.slice(3)));
     } catch {
       setError('Unable to prepare this battle. Confirm the API is running and try again.');

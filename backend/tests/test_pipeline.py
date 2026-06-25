@@ -1,4 +1,5 @@
 from scripts.pipeline import normalize_pokemon, normalize_species, resource_id
+from scripts.import_existing_datasets import imported_types
 
 
 def test_resource_id_extracts_pokeapi_identifiers():
@@ -63,3 +64,15 @@ def test_normalize_species_preserves_battle_and_species_metadata():
     assert document['capture_rate'] == 190
     assert document['evolution_chain_id'] == 10
     assert document['evolves_from_species'] == 'pichu'
+
+
+def test_existing_stats_type_import_reconstructs_damage_relationships():
+    rows = [
+        {'PrimaryType': 'grass', 'SecondaryType': '', 'against_Fire': 2, 'against_Water': 0.5},
+        {'PrimaryType': 'fire', 'SecondaryType': '', 'against_Grass': 2, 'against_Water': 2},
+    ]
+
+    records = {record['api_name']: record for record in imported_types(rows)}
+
+    assert 'grass' in records['fire']['damage_relations']['double_damage_to']
+    assert 'fire' in records['water']['damage_relations']['double_damage_to']
