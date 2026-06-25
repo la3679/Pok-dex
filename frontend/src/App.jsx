@@ -19,6 +19,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import AchievementsPage from './pages/AchievementsPage';
 import QuizPage from './pages/QuizPage';
 import WhoWouldWinPage from './pages/WhoWouldWinPage';
+import AboutPage from './pages/AboutPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -41,7 +42,7 @@ function AnimatedRoutes() {
     <Route path="/achievements" element={<AchievementsPage />} />
     <Route path="/quiz" element={<QuizPage />} />
     <Route path="/who-would-win" element={<WhoWouldWinPage />} />
-    <Route path="/about" element={<FeaturePlaceholder feature="about" />} />
+    <Route path="/about" element={<AboutPage />} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes></motion.div></AnimatePresence></AppShell>;
 }

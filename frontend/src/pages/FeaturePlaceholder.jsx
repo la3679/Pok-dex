@@ -10,7 +10,6 @@ const content = {
   analytics: ['Analytics dashboard', 'Data insights', 'Server-side aggregate endpoints are ready; the chart dashboard arrives in Phase 9.'],
   'battle-history': ['Battle history', 'Battle mode', 'Local battle history arrives with the battle redesign in Phase 7.'],
   map: ['Sightings map', 'Exploration', 'Open any Pokémon record to explore its available sightings on the map. A full general map and exploration controls are scheduled for Phase 8.'],
-  about: ['About Pokédex Atlas', 'Project', 'A portfolio-ready full-stack platform for Pokémon discovery, data exploration, and play.'],
 };
 
 export default function FeaturePlaceholder({ feature }) {
