@@ -88,14 +88,41 @@ export default function SightingsMapPage() {
         ),
     );
   };
+  // Re-run when the data view appears so the map initializes against a real,
+  // mounted container — the map div is absent while the loader/error shows,
+  // which is why a one-shot mount effect left the first load blank.
+  const containerVisible = !sightings.isLoading && !sightings.isError;
   useEffect(() => {
+    if (!containerVisible) return undefined;
     let cancelled = false;
+    let observer;
+    const timers = [];
+
+    // The map container is laid out inside an animated (scale/opacity) route
+    // wrapper. Creating the map before the container has real dimensions — or
+    // while the entrance transform is mid-flight — leaves tiles blank until a
+    // resize. Wait for a measurable container, then nudge after it settles.
+    const waitForContainer = () =>
+      new Promise((resolve) => {
+        const check = (attempt = 0) => {
+          if (cancelled) return resolve(false);
+          const node = mapNode.current;
+          if (node && node.offsetWidth > 0 && node.offsetHeight > 0) return resolve(true);
+          if (attempt > 90) return resolve(false); // ~1.5s safety cap
+          return window.requestAnimationFrame(() => check(attempt + 1));
+        };
+        check();
+      });
+
     loadGoogleMaps(mapsKey)
       .then(async (google) => {
-        await new Promise((resolve) => window.requestAnimationFrame(resolve));
-        if (cancelled || !mapNode.current) return;
+        const ready = await waitForContainer();
+        if (cancelled || !ready || !mapNode.current) return;
         mapsApi.current = google;
-        if (!mapInstance.current)
+        // Recreate the map if it is missing or bound to a stale container node
+        // (e.g. a StrictMode remount swaps in a fresh DOM node), otherwise the
+        // visible container stays empty while the map lives in a detached node.
+        if (!mapInstance.current || mapInstance.current.getDiv() !== mapNode.current) {
           mapInstance.current = new google.maps.Map(mapNode.current, {
             center: position || { lat: 20, lng: 0 },
             zoom: position ? 7 : 2,
@@ -103,13 +130,39 @@ export default function SightingsMapPage() {
             streetViewControl: false,
             fullscreenControl: false,
           });
+        }
+
+        // Re-fit the map to its container so first-load tiles fill the area
+        // instead of rendering blank. Repeat across the transition window.
+        const nudge = () => {
+          const map = mapInstance.current;
+          if (cancelled || !map) return;
+          const center = map.getCenter();
+          google.maps.event.trigger(map, "resize");
+          if (center) map.setCenter(center);
+        };
+        [60, 350, 700].forEach((delay) => timers.push(window.setTimeout(nudge, delay)));
+        if (typeof ResizeObserver !== "undefined" && mapNode.current) {
+          observer = new ResizeObserver(() => nudge());
+          observer.observe(mapNode.current);
+        }
+
         setMapReady(true);
       })
       .catch((error) => !cancelled && setMapError(error.message));
+
     return () => {
       cancelled = true;
+      timers.forEach((timer) => window.clearTimeout(timer));
+      observer?.disconnect();
+      markers.current.forEach((marker) => marker.setMap(null));
+      markers.current = [];
+      heatmap.current?.setMap(null);
+      heatmap.current = null;
+      radiusCircle.current?.setMap(null);
+      radiusCircle.current = null;
     };
-  }, []);
+  }, [containerVisible]);
   useEffect(() => {
     const google = mapsApi.current;
     const map = mapInstance.current;
@@ -214,7 +267,13 @@ export default function SightingsMapPage() {
         onRetry={sightings.refetch}
       />
     );
-  const summary = sightings.data.summary;
+  // Guard against an unexpected/missing payload shape so the page never
+  // white-screens; the map, controls, and sidebar still render.
+  const summary = sightings.data?.summary ?? {
+    total: points.length,
+    visible: points.length,
+    latest_date: null,
+  };
   return (
     <div
       className={`pokedex-screen sightings-page ${fullScreen ? "sightings-page--fullscreen" : ""}`}
@@ -319,11 +378,23 @@ export default function SightingsMapPage() {
           />
           {!mapsKey && (
             <div className="map-fallback" style={{ zIndex: 3 }}>
-              <strong>Map key not configured</strong>
+              <strong>Google Maps key is not configured</strong>
               <span>
-                The interactive list and filters still work. Add your restricted
-                key to `frontend/.env.local` to enable Google Maps.
+                Add REACT_APP_GOOGLE_MAPS_API_KEY to frontend/.env.local to enable
+                the map. The sightings list, filters, and controls still work.
               </span>
+            </div>
+          )}
+          {mapsKey && mapError && !mapReady && (
+            <div className="map-fallback map-fallback--error" style={{ zIndex: 3 }}>
+              <strong>Map could not initialize</strong>
+              <span>{mapError} The sightings list and filters still work.</span>
+            </div>
+          )}
+          {mapsKey && !mapReady && !mapError && (
+            <div className="map-loading" style={{ zIndex: 3 }} role="status" aria-live="polite">
+              <span className="map-loading__spinner" aria-hidden="true" />
+              <span className="terminal-text">Initializing map…</span>
             </div>
           )}
         </section>
