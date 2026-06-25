@@ -2,65 +2,11 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useProfile } from '../../context/ProfileContext';
 import { BootSequence } from '../ui/BootSequence';
-
-// Navigation is grouped into "modules" so the sidebar reads like a Pokédex
-// device menu rather than a flat list of links.
-const navGroups = [
-  {
-    title: 'Field',
-    items: [
-      { to: '/pokedex', label: 'Pokédex', icon: '◈' },
-      { to: '/map', label: 'Sightings', icon: '⌖' },
-      { to: '/analytics', label: 'Analytics', icon: '◌' },
-    ],
-  },
-  {
-    title: 'Combat',
-    items: [
-      { to: '/battle', label: 'Battle', icon: '⚔' },
-      { to: '/battle/history', label: 'Battle Log', icon: '▤' },
-      { to: '/who-would-win', label: 'Who Would Win', icon: '⚡' },
-      { to: '/quiz', label: 'Quiz', icon: '?' },
-    ],
-  },
-  {
-    title: 'Strategy',
-    items: [
-      { to: '/compare', label: 'Compare', icon: '⇄' },
-      { to: '/team-builder', label: 'Team Builder', icon: '⬡' },
-      { to: '/type-chart', label: 'Type Chart', icon: '▦' },
-    ],
-  },
-  {
-    title: 'Storage',
-    items: [
-      { to: '/favorites', label: 'Favorites', icon: '★' },
-      { to: '/recent', label: 'Recently viewed', icon: '◷' },
-      { to: '/achievements', label: 'Achievements', icon: '✦' },
-      { to: '/profile', label: 'Profile', icon: '⚙' },
-    ],
-  },
-  {
-    title: 'System',
-    items: [{ to: '/about', label: 'About', icon: '◉' }],
-  },
-];
-
-const flatNav = navGroups.flatMap((group) => group.items);
-
-function resolveModuleLabel(pathname) {
-  if (pathname === '/') return 'Home Terminal';
-  if (pathname.startsWith('/pokemon/sightings')) return 'Sightings';
-  if (pathname.startsWith('/pokemon/')) return 'Dex Record';
-  // Longest matching prefix wins (so /battle/history beats /battle).
-  const match = [...flatNav]
-    .sort((a, b) => b.to.length - a.to.length)
-    .find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`));
-  return match ? match.label : 'Module';
-}
+import { CommandPalette } from './CommandPalette';
+import { navGroups, dockItems, resolveModuleLabel } from './navConfig';
 
 export function AppShell({ children }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const { preferences, setPreference } = useProfile();
   const location = useLocation();
   const theme = preferences.theme;
@@ -70,24 +16,22 @@ export function AppShell({ children }) {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  // Close the mobile drawer whenever the route changes.
+  // Close the palette on navigation.
   useEffect(() => {
-    setMenuOpen(false);
+    setPaletteOpen(false);
   }, [location.pathname]);
 
-  // Lock body scroll + allow Escape to close while the drawer is open.
+  // Global ⌘K / Ctrl+K to summon the command palette.
   useEffect(() => {
-    if (!menuOpen) return undefined;
     const onKey = (event) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
     };
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [menuOpen]);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <>
@@ -109,28 +53,44 @@ export function AppShell({ children }) {
 
         <div className="app-shell">
           <a className="skip-link" href="#main-content">Skip to content</a>
+
+          {/* Desktop module rail — icon activity bar with hover tooltips. */}
+          <nav className="rail" aria-label="Primary navigation">
+            {navGroups.map((group, groupIndex) => (
+              <div className="rail__group" key={group.title}>
+                {groupIndex > 0 && <span className="rail__sep" aria-hidden="true" />}
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/'}
+                    className="rail__item"
+                    aria-label={item.label}
+                  >
+                    <span className="rail__icon" aria-hidden="true">{item.icon}</span>
+                    <span className="rail__tip" role="tooltip">{item.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            ))}
+          </nav>
+
           <header className="topbar">
-            <div className="topbar__lead">
-              <button
-                className="menu-button"
-                onClick={() => setMenuOpen((open) => !open)}
-                aria-expanded={menuOpen}
-                aria-controls="mobile-nav"
-                aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              >
-                <span aria-hidden="true">{menuOpen ? '✕' : '☰'}</span>
-              </button>
-              <NavLink className="brand" to="/" aria-label="Pokédex Atlas home">
-                <span className="brand__orb" aria-hidden="true" />
-                <span>Pokédex <b>Atlas</b></span>
-              </NavLink>
-            </div>
-            <nav className="topnav" aria-label="Primary navigation">
-              {navGroups[0].items.concat(navGroups[1].items[0]).map((item) => (
-                <NavLink key={item.to} to={item.to}>{item.label}</NavLink>
-              ))}
-            </nav>
+            <NavLink className="brand" to="/" aria-label="Pokédex Atlas home">
+              <span className="brand__orb" aria-hidden="true" />
+              <span>Pokédex <b>Atlas</b></span>
+            </NavLink>
             <div className="topbar__tools">
+              <button
+                className="cmdk-trigger"
+                onClick={() => setPaletteOpen(true)}
+                aria-label="Open command palette"
+                aria-keyshortcuts="Control+K Meta+K"
+              >
+                <span className="cmdk-trigger__icon" aria-hidden="true">⌕</span>
+                <span className="cmdk-trigger__text">Search modules</span>
+                <kbd className="cmdk-trigger__kbd">⌘K</kbd>
+              </button>
               <button
                 className="icon-button"
                 onClick={() => setPreference('theme', theme === 'dark' ? 'light' : 'dark')}
@@ -140,27 +100,6 @@ export function AppShell({ children }) {
               </button>
             </div>
           </header>
-
-          <div
-            className={`sidebar__backdrop ${menuOpen ? 'sidebar__backdrop--show' : ''}`}
-            onClick={() => setMenuOpen(false)}
-            aria-hidden="true"
-          />
-          <aside className={`sidebar ${menuOpen ? 'sidebar--open' : ''}`} id="mobile-nav">
-            <nav aria-label="Application navigation">
-              {navGroups.map((group) => (
-                <div key={group.title} className="sidebar__group">
-                  <p className="sidebar__group-title">{group.title}</p>
-                  {group.items.map((item) => (
-                    <NavLink key={item.to} to={item.to} onClick={() => setMenuOpen(false)}>
-                      <span className="sidebar__icon" aria-hidden="true">{item.icon}</span>
-                      <span className="sidebar__label">{item.label}</span>
-                    </NavLink>
-                  ))}
-                </div>
-              ))}
-            </nav>
-          </aside>
 
           <main id="main-content" className="app-main">
             <div className="pokedex-screen">
@@ -173,7 +112,33 @@ export function AppShell({ children }) {
             <span>Data: PokéAPI · Sightings: local dataset</span>
           </footer>
         </div>
+
+        {/* Mobile bottom dock — thumb-friendly primary destinations. */}
+        <nav className="bottom-dock" aria-label="Quick navigation">
+          {dockItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className="bottom-dock__item"
+              aria-label={item.label}
+            >
+              <span className="bottom-dock__icon" aria-hidden="true">{item.icon}</span>
+              <span className="bottom-dock__label">{item.label}</span>
+            </NavLink>
+          ))}
+          <button
+            className="bottom-dock__item bottom-dock__more"
+            onClick={() => setPaletteOpen(true)}
+            aria-label="More modules"
+          >
+            <span className="bottom-dock__icon" aria-hidden="true">⋯</span>
+            <span className="bottom-dock__label">More</span>
+          </button>
+        </nav>
       </div>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
   );
 }
