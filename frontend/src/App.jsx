@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { BootSequence } from './components/ui/BootSequence';
 import LandingPage from './pages/LandingPage';
 import PokedexPage from './pages/PokedexPage';
 import PokemonDetailPage from './pages/PokemonDetailPage';
@@ -20,7 +22,7 @@ import WhoWouldWinPage from './pages/WhoWouldWinPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
-  return <AppShell><AnimatePresence mode="wait"><motion.div key={location.pathname} className="route-motion" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}><Routes location={location}>
+  return <AppShell><AnimatePresence mode="wait"><motion.div key={location.pathname} className="route-motion" initial={{ opacity: 0, y: 15, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.98 }} transition={{ duration: 0.3, ease: 'easeOut' }}><Routes location={location}>
     <Route path="/" element={<LandingPage />} />
     <Route path="/pokedex" element={<PokedexPage />} />
     <Route path="/pokemon/:pokemonId" element={<PokemonDetailPage />} />
@@ -44,4 +46,13 @@ function AnimatedRoutes() {
   </Routes></motion.div></AnimatePresence></AppShell>;
 }
 
-export default function App() { return <BrowserRouter><AnimatedRoutes /></BrowserRouter>; }
+export default function App() {
+  const [booted, setBooted] = useState(false);
+
+  return (
+    <BrowserRouter>
+      {!booted && <BootSequence onComplete={() => setBooted(true)} />}
+      {booted && <AnimatedRoutes />}
+    </BrowserRouter>
+  );
+}
