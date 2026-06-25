@@ -6,10 +6,30 @@ The frontend has been redesigned as a modern Pokédex-style dashboard: deep char
 
 - Dark and light themes through CSS custom properties.
 - Type-colored accents for cards, badges, filters, charts, and battle moves.
-- Responsive AppShell with desktop navigation and mobile-friendly layout.
 - Keyboard-visible focus states and accessible labels for interactive controls.
 - Motion used for page transitions, loaders, battle feedback, and small interaction polish.
 - Reduced-motion compatibility where animation is decorative.
+
+## Navigation model (command center)
+
+The app uses a "command center" navigation rather than a traditional
+navbar/sidebar:
+
+- **Desktop:** a slim icon **module rail** (activity-bar style) grouped into
+  Discover / Strategy / Personal / System, with hover/focus tooltips and a
+  glowing active indicator.
+- **Command palette (Ctrl/Cmd+K):** fuzzy jump to any module with full keyboard
+  control and accessible combobox/listbox semantics.
+- **Mobile:** a thumb-friendly **bottom dock** (Home / Pokédex / Map / Battle /
+  More), where "More" opens the command palette.
+- A single `navConfig` is the source of truth shared by the rail, dock, and
+  palette. Product labels (Collection, Scan History, Research Lab, Trainer
+  Console, Battle Predictor) sit on top of unchanged routes.
+- **Route transitions** are tuned per module type (dashboard, catalog, record,
+  map, battle, analytics) on transform/opacity, with a scanner-line sweep and a
+  reduced-motion crossfade fallback.
+- **Home** is a dashboard hub: live stats from `/api/analytics/summary`, module
+  cards, and a local trainer snapshot.
 
 ## Completed page set
 
@@ -33,8 +53,8 @@ The frontend has been redesigned as a modern Pokédex-style dashboard: deep char
 
 ## Shared UI components
 
-- AppShell
-- Navbar/sidebar navigation
+- AppShell (device frame + module rail + bottom dock)
+- Command palette (Ctrl/Cmd+K)
 - PageHeader
 - Pokémon cards
 - Type badges
